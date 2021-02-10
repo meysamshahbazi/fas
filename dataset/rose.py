@@ -8,6 +8,11 @@ import torch
 
 
 def crateJsonSummery(root,data_partion):
+    '''
+    this will create a json file thath contain usfull info for loading and infering data
+
+    
+    '''
     with open(root+data_partion+'.txt', "r") as text_file:
         lines = text_file.readlines()
     
