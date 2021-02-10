@@ -29,8 +29,7 @@ class AlexNet(nn.Module):
         self.conv4 = nn.Conv2d(384, 384, 3, padding=1)  # (b x 384 x 13 x 13)
         self.conv5 = nn.Conv2d(384, 256, 3, padding=1)  # (b x 256 x 13 x 13)
       
-        self.maxpool3 = nn.MaxPool2d(kernel_size=3, stride=2)  # (b x 256 x 6 x 6)
-
+        self.adpmaxpool = nn.AdaptiveMaxPool2d((6,6))
         self.drop1 = nn.Dropout(p=0.5, inplace=True)
         self.linear1 = nn.Linear(in_features=(256 * 6 * 6), out_features=4096)
         
@@ -71,7 +70,7 @@ class AlexNet(nn.Module):
         x = self.relu(x)
         x = self.conv5(x)
         x = self.relu(x)
-        x = self.maxpool3(x)
+        x = self.adpmaxpool(x)
         x = x.view(-1, 256 * 6 * 6)
 
         x = self.drop1(x)
