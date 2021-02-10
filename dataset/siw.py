@@ -7,6 +7,10 @@ import json
 import torch
 
 def crateJsonSummery(root,data_partion):
+    '''
+    this will create a json that describe data in human manner!
+    '''
+    
     with open(root+data_partion+'.txt', "r") as text_file:
         lines = text_file.readlines()
 
