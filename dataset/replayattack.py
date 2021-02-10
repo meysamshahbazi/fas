@@ -108,7 +108,7 @@ def vidToImage(root):
                 break
         cap.release()
 
-def crateJsonSummery(root,sub_dir,face_path):
+def crateJsonSummery(root,sub_dir):
     """
     this function creates a dict that describe nessury information of dataset
     and then save that into the json file
@@ -135,18 +135,7 @@ def crateJsonSummery(root,sub_dir,face_path):
             else:
                 break
         cap.release()
-        with open(face_path+sub_dir+my_dict[index]['name'][:-4]+'.face', "r") as text_file:
-            lines = text_file.readlines()
-        my_dict[index]['face_loc'] = []
-        if len(lines) != frame_cnt:
-            print(my_dict[index]['name'])
-        for i in range(frame_cnt):
-            cor = lines[i][:-1].split(' ')[1:]
-            x = int(cor[0])
-            y = int(cor[1])
-            w = int(cor[2])
-            h = int(cor[3])
-            my_dict[index]['face_loc'].append((x,y,w,h))
+        
         my_dict[index]['nb_frame'] = frame_cnt
         if index == 0:
             my_dict[index]['nb_frame_total'] = frame_cnt
@@ -176,18 +165,7 @@ def crateJsonSummery(root,sub_dir,face_path):
             else:
                 break
         cap.release()
-        with open(face_path+sub_dir+my_dict[index]['name'][:-4]+'.face', "r") as text_file:
-            lines = text_file.readlines()
-        my_dict[index]['face_loc'] = []
-        if len(lines) != frame_cnt:
-            print(my_dict[index]['name'])
-        for i in range(frame_cnt):
-            cor = lines[i][:-1].split(' ')[1:]
-            x = int(cor[0])
-            y = int(cor[1])
-            w = int(cor[2])
-            h = int(cor[3])
-            my_dict[index]['face_loc'].append((x,y,w,h))
+
         my_dict[index]['nb_frame'] = frame_cnt    
         my_dict[index]['nb_frame_total'] = frame_cnt + my_dict[index-1]['nb_frame_total'] 
         my_dict[index]['resolution'] = resolution
@@ -215,18 +193,7 @@ def crateJsonSummery(root,sub_dir,face_path):
             else:
                 break
         cap.release()
-        with open(face_path+sub_dir+my_dict[index]['name'][:-4]+'.face', "r") as text_file:
-            lines = text_file.readlines()
-        my_dict[index]['face_loc'] = []
-        if len(lines) != frame_cnt:
-            print(my_dict[index]['name'])
-        for i in range(frame_cnt):
-            cor = lines[i][:-1].split(' ')[1:]
-            x = int(cor[0])
-            y = int(cor[1])
-            w = int(cor[2])
-            h = int(cor[3])
-            my_dict[index]['face_loc'].append((x,y,w,h))
+
         my_dict[index]['nb_frame'] = frame_cnt
         my_dict[index]['nb_frame_total'] = frame_cnt + my_dict[index-1]['nb_frame_total'] 
         my_dict[index]['resolution'] = resolution
