@@ -70,7 +70,7 @@ class ReplayAttack(data.Dataset):
         x = torch.FloatTensor(x)
         y = self.datadict[str(self.vid_idx)]['real_or_spoof']
         y = torch.FloatTensor([y])
-        return x,self.datadict[str(self.vid_idx)]['name']
+        return x,y
 
 
 
