@@ -8,10 +8,12 @@ import torch
 
 
 class ReplayAttack(data.Dataset):
-    def __init__(self,root,sub_dir,train_type='train'):
+    def __init__(self,root,sub_dir,for_train=True):
         self.root = root
         self.sub_dir = sub_dir
-        self.train_type = train_type # 'train' or 'dev' or 'test'
+        self.for_train = for_train # for dev and test this is False
+        self.vid_idx = 0
+        self.vid_list = []
         with open(self.root+self.sub_dir+'data_summery.json', 'r') as openfile:
             self.datadict = json.load(openfile)  
             
@@ -19,31 +21,56 @@ class ReplayAttack(data.Dataset):
         return self.datadict[str(len(self.datadict)-1)]['nb_frame_total']
     
     def __getitem__(self,index): #TODO: write get item for test and devel 
-        vid_idx = 0 # find index of video 
-        while self.datadict[str(vid_idx)]['nb_frame_total']<=index:
-            vid_idx +=1
-        # find index of frame from video number vid_idx
-        if vid_idx>0:
-            frame_idx = index - self.datadict[str(vid_idx-1)]['nb_frame_total']
-        else:
-            frame_idx = index
-        cap = cv2.VideoCapture(self.root+self.sub_dir+self.datadict[str(vid_idx)]['name'] )
-        frame_cnt = 0
-        while cap.isOpened():
-            ret,frame = cap.read()
-            if ret:
-                if frame_cnt == frame_idx:
-                    x = frame
-                    break
-                frame_cnt = frame_cnt + 1
+        if self.for_train:
+            self.vid_idx = 0 # find index of video 
+            while self.datadict[str(self.vid_idx)]['nb_frame_total']<=index:
+                self.vid_idx +=1
+            # find index of frame from video number vid_idx
+            if self.vid_idx>0:
+                frame_idx = index - self.datadict[str(self.vid_idx-1)]['nb_frame_total']
             else:
-                break
-        cap.release()
+                frame_idx = index
+            cap = cv2.VideoCapture(self.root+self.sub_dir+self.datadict[str(self.vid_idx)]['name'] )
+            frame_cnt = 0
+            while cap.isOpened():
+                ret,frame = cap.read()
+                if ret:
+                    if frame_cnt == frame_idx:
+                        x = frame
+                        break
+                    frame_cnt = frame_cnt + 1
+                else:
+                    break
+            cap.release()
+        else: # for dev and test
+            if index == 0 or index >= self.datadict[str(self.vid_idx)]['nb_frame_total']:
+                if index == 0:
+                    self.vid_idx = 0
+                else: 
+                    self.vid_idx += 1
+                    
+                self.vid_list = []
+                cap = cv2.VideoCapture(self.root+self.sub_dir+self.datadict[str(self.vid_idx)]['name'] )
+                while cap.isOpened():
+                    ret,frame = cap.read()
+                    if ret:
+                        self.vid_list.append(frame)
+                    else:
+                        break
+                cap.release()
+            
+            if self.vid_idx > 0:
+                frame_idx = index - self.datadict[str(self.vid_idx-1)]['nb_frame_total']
+            else:
+                frame_idx = index
+            
+            x = self.vid_list[frame_idx]
+            
         x = x.transpose(2,1,0)
         x = torch.FloatTensor(x)
-        y = self.datadict[str(vid_idx)]['real_or_spoof']
+        y = self.datadict[str(self.vid_idx)]['real_or_spoof']
         y = torch.FloatTensor([y])
-        return x,y
+        return x,self.datadict[str(self.vid_idx)]['name']
 
 
 
@@ -136,7 +163,7 @@ def crateJsonSummery(root,sub_dir):
             else:
                 break
         cap.release()
-        
+
         my_dict[index]['nb_frame'] = frame_cnt
         if index == 0:
             my_dict[index]['nb_frame_total'] = frame_cnt
@@ -205,3 +232,4 @@ def crateJsonSummery(root,sub_dir):
     
     with open(root+sub_dir+"data_summery.json", "w") as outfile:  
         json.dump(my_dict, outfile) 
+        
