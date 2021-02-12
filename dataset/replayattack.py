@@ -7,7 +7,7 @@ import json
 import torch
 
 
-class ReplayAttack2(data.Dataset):
+class ReplayAttack(data.Dataset):
     def __init__(self,root,sub_dir,batch_size,for_train=True):
         self.root = root
         self.sub_dir = sub_dir
