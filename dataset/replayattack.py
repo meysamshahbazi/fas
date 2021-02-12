@@ -7,41 +7,39 @@ import json
 import torch
 
 
-class ReplayAttack(data.Dataset):
-    def __init__(self,root,sub_dir,for_train=True):
+class ReplayAttack2(data.Dataset):
+    def __init__(self,root,sub_dir,batch_size,for_train=True):
         self.root = root
         self.sub_dir = sub_dir
         self.for_train = for_train # for dev and test this is False
         self.vid_idx = 0
         self.vid_list = []
+        self.opened_vid = {}
+        self.batch_size = batch_size
         with open(self.root+self.sub_dir+'data_summery.json', 'r') as openfile:
             self.datadict = json.load(openfile)  
             
     def __len__(self):
         return self.datadict[str(len(self.datadict)-1)]['nb_frame_total']
     
-    def __getitem__(self,index): #TODO: write get item for test and devel 
+    def __getitem__(self,index): 
         if self.for_train:
-            self.vid_idx = 0 # find index of video 
-            while self.datadict[str(self.vid_idx)]['nb_frame_total']<=index:
-                self.vid_idx +=1
-            # find index of frame from video number vid_idx
-            if self.vid_idx>0:
-                frame_idx = index - self.datadict[str(self.vid_idx-1)]['nb_frame_total']
-            else:
-                frame_idx = index
-            cap = cv2.VideoCapture(self.root+self.sub_dir+self.datadict[str(self.vid_idx)]['name'] )
-            frame_cnt = 0
-            while cap.isOpened():
-                ret,frame = cap.read()
-                if ret:
-                    if frame_cnt == frame_idx:
-                        x = frame
+            self.vid_idx,frame_index = index
+            if not self.vid_idx in self.opened_vid.keys():
+                if int(len(self.opened_vid)) == self.batch_size:
+                    self.opened_vid = {}
+                self.opened_vid[self.vid_idx] = []
+                cap = cv2.VideoCapture(self.root+self.sub_dir+self.datadict[str(self.vid_idx)]['name'] )
+                while cap.isOpened():
+                    ret,frame = cap.read()
+                    if ret:
+                        self.opened_vid[self.vid_idx].append(frame)
+                    else:
                         break
-                    frame_cnt = frame_cnt + 1
-                else:
-                    break
-            cap.release()
+                cap.release()
+            x = self.opened_vid[self.vid_idx][frame_index]
+            self.opened_vid[self.vid_idx][frame_index] = []
+                
         else: # for dev and test
             if index == 0 or index >= self.datadict[str(self.vid_idx)]['nb_frame_total']:
                 if index == 0:
@@ -73,68 +71,6 @@ class ReplayAttack(data.Dataset):
         return x,y
 
 
-
-def vidToImage(root):
-    """
-    in replay attack each folder have this form:
-    /real
-    /attack/fixed
-    /attack/hand
-    """
-    if not os.path.isdir(root[:-1]+'-img'):
-        os.mkdir(root[:-1]+'-img')
-    if not os.path.isdir(root[:-1]+'-img/real'):    
-        os.mkdir(root[:-1]+'-img/real')
-    if not os.path.isdir(root[:-1]+'-img/attack'):    
-        os.mkdir(root[:-1]+'-img/attack')
-    if not os.path.isdir(root[:-1]+'-img/attack/fixed'):    
-        os.mkdir(root[:-1]+'-img/attack/fixed')
-    if not os.path.isdir(root[:-1]+'-img/attack/hand'):    
-        os.mkdir(root[:-1]+'-img/attack/hand')
-
-    path = root+'real/'
-    vids = os.listdir(path)
-    for v in vids:
-        frame_cnt = 0
-        cap = cv2.VideoCapture(path+v)
-        while cap.isOpened():
-            ret,frame = cap.read()
-            if ret:
-                cv2.imwrite(root[:-1]+'-img/real/'+v[:-4]+'_'+str(frame_cnt)+'.png', frame)
-                frame_cnt = frame_cnt + 1
-            else:
-                break
-        cap.release()
-
-    
-    
-    path = root+'attack/fixed/'
-    vids = os.listdir(path)
-    for v in vids:
-        frame_cnt = 0
-        cap = cv2.VideoCapture(path+v)
-        while cap.isOpened():
-            ret,frame = cap.read()
-            if ret:
-                cv2.imwrite(root[:-1]+'-img/attack/fixed/'+v[:-4]+'_'+str(frame_cnt)+'.png', frame)
-                frame_cnt = frame_cnt + 1
-            else:
-                break
-        cap.release()
-        
-    path = root+'attack/hand/'
-    vids = os.listdir(path)
-    for v in vids:
-        frame_cnt = 0
-        cap = cv2.VideoCapture(path+v)
-        while cap.isOpened():
-            ret,frame = cap.read()
-            if ret:
-                cv2.imwrite(root[:-1]+'-img/attack/hand/'+v[:-4]+'_'+str(frame_cnt)+'.png', frame)
-                frame_cnt = frame_cnt + 1
-            else:
-                break
-        cap.release()
 
 def crateJsonSummery(root,sub_dir):
     """
