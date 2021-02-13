@@ -11,7 +11,7 @@ class TrainBatchSampler(data.sampler.Sampler):
     with this method in each batch we reuse preloaded video frames
     this is a little far from complete randomness! but the speed will 
     increase in order of magnitude!
-    
+
     '''
     def __init__(self, dataset, batch_size):
         self.batch_size = batch_size
@@ -21,9 +21,9 @@ class TrainBatchSampler(data.sampler.Sampler):
             if self.dataset.datadict[k]['nb_frame'] < self.min_frames:
                 self.min_frames = self.dataset.datadict[k]['nb_frame']
     def __iter__(self):
-        all_vids = list(range(len(train_dataset.datadict)))
+        all_vids = list(range(len(self.dataset.datadict)))
         random.shuffle(all_vids)
-        vids_for_batch = torch.split(torch.tensor(all_vids),batch_size)
+        vids_for_batch = torch.split(torch.tensor(all_vids),self.batch_size)
         vids_for_batch = [batch.tolist() for batch in vids_for_batch]
         
         vids_iter = [[ (v,iter(data.SubsetRandomSampler(range(self.dataset.datadict[str(v)]['nb_frame']))) ) for v in batch] for batch in vids_for_batch]
