@@ -37,7 +37,6 @@ class AlexNet(nn.Module):
         self.linear2 = nn.Linear(in_features=4096, out_features=4096)
         self.linear3 = nn.Linear(in_features=4096, out_features=num_classes)
   
-        self.sigmoid = nn.Sigmoid()
     def init_bias(self):
         for layer in self.net:
             if isinstance(layer, nn.Conv2d):
@@ -77,7 +76,7 @@ class AlexNet(nn.Module):
         x = self.drop2(x)
         x = self.linear2(x)
         x = self.linear3(x)
-        return self.sigmoid(x)
+        return x
 
 
 
