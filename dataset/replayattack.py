@@ -70,6 +70,9 @@ class ReplayAttack(data.Dataset):
         y = torch.FloatTensor([y])
         return x,y
 
+    def clear_cache(self):#this must be called after end of each epoch in training
+      self.opened_vid = {}
+
 
 
 def crateJsonSummery(root,sub_dir):
