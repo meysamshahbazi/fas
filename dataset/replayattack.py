@@ -1,4 +1,5 @@
 from torch.utils import data
+from fasdataset import FASDataset
 import cv2
 import random
 import os
@@ -7,7 +8,7 @@ import json
 import torch
 
 
-class ReplayAttack(data.Dataset):
+class ReplayAttack(FASDataset):
     def __init__(self,root,data_partion,batch_size,for_train=True):
         self.root = root
         self.data_partion = data_partion
