@@ -8,15 +8,15 @@ import torch
 
 
 class ReplayAttack(data.Dataset):
-    def __init__(self,root,sub_dir,batch_size,for_train=True):
+    def __init__(self,root,data_partion,batch_size,for_train=True):
         self.root = root
-        self.sub_dir = sub_dir
+        self.data_partion = data_partion
         self.for_train = for_train # for dev and test this is False
         self.vid_idx = 0
         self.vid_list = []
         self.opened_vid = {}
         self.batch_size = batch_size
-        with open(self.root+self.sub_dir+'data_summery.json', 'r') as openfile:
+        with open(self.root+self.data_partion+'/data_summery.json', 'r') as openfile:
             self.datadict = json.load(openfile)  
             
     def __len__(self):
@@ -29,7 +29,7 @@ class ReplayAttack(data.Dataset):
                 if int(len(self.opened_vid)) == self.batch_size:
                     self.opened_vid = {}
                 self.opened_vid[self.vid_idx] = []
-                cap = cv2.VideoCapture(self.root+self.sub_dir+self.datadict[str(self.vid_idx)]['name'] )
+                cap = cv2.VideoCapture(self.root+self.data_partion+'/'+self.datadict[str(self.vid_idx)]['name'] )
                 while cap.isOpened():
                     ret,frame = cap.read()
                     if ret:
@@ -48,7 +48,7 @@ class ReplayAttack(data.Dataset):
                     self.vid_idx += 1
                     
                 self.vid_list = []
-                cap = cv2.VideoCapture(self.root+self.sub_dir+self.datadict[str(self.vid_idx)]['name'] )
+                cap = cv2.VideoCapture(self.root+self.data_partion+'/'+self.datadict[str(self.vid_idx)]['name'] )
                 while cap.isOpened():
                     ret,frame = cap.read()
                     if ret:
@@ -73,102 +73,50 @@ class ReplayAttack(data.Dataset):
     def clear_cache(self):#this must be called after end of each epoch in training
       self.opened_vid = {}
 
+    def crateJsonSummery(self):
+        """
+        this function creates a dict that describe nessury information of dataset
+        and then save that into the json file
+        index: name,frame_cnt,label,PAI,face_loc,resolution,person_id,
+        """
+        my_dict = {}
+        vids_path = ['/real','/attack/fixed/','/attack/hand/']
+        index = 0
+        for vp in vids_path:
+            vids = os.listdir(self.root+self.data_partion+vp)
+            for v in vids:
+                my_dict[index] = {}
+                my_dict[index]['name'] = vp+v # such that with root+sub_dir+name we can load video
+                my_dict[index]['person_id'] = int(v.split('_')[0][-3:])
+                if vp == '/real':
+                    my_dict[index]['real_or_spoof'] = 1 # 1 for real and 0 for spoof
+                    my_dict[index]['PAI'] = None
+                else:
+                    my_dict[index]['real_or_spoof'] = 0 # 1 for real and 0 for spoof
+                    my_dict[index]['PAI'] = v.split('_')[1] 
+                    
+                my_dict[index]['lighting'] = v.split('_')[4]
+                cap = cv2.VideoCapture(self.root+self.data_partion+'/'+my_dict[index]['name'] )
+                frame_cnt = 0
+                while cap.isOpened():
+                    ret,frame = cap.read()
+                    if ret:
+                        frame_cnt = frame_cnt + 1
+                        resolution = frame.shape
+                    else:
+                        break
+                cap.release()
 
-
-def crateJsonSummery(root,sub_dir):
-    """
-    this function creates a dict that describe nessury information of dataset
-    and then save that into the json file
-    index: name,frame_cnt,label,PAI,face_loc,resolution,person_id,
-    """
-    my_dict = {}
-    vids = []
-    vids = os.listdir(root+sub_dir+'real')
-    index = 0
-    for v in vids:
-        my_dict[index] = {}
-        my_dict[index]['name'] = 'real/'+v # such that with root+sub_dir+name we can load video
-        my_dict[index]['person_id'] = int(v.split('_')[0][-3:])
-        my_dict[index]['real_or_spoof'] = 1 # 1 for real and 0 for spoof
-        my_dict[index]['PAI'] = None 
-        my_dict[index]['lighting'] = v.split('_')[4]
-        cap = cv2.VideoCapture(root+sub_dir+my_dict[index]['name'] )
-        frame_cnt = 0
-        while cap.isOpened():
-            ret,frame = cap.read()
-            if ret:
-                frame_cnt = frame_cnt + 1
-                resolution = frame.shape
-            else:
-                break
-        cap.release()
-
-        my_dict[index]['nb_frame'] = frame_cnt
-        if index == 0:
-            my_dict[index]['nb_frame_total'] = frame_cnt
-        else:
-            my_dict[index]['nb_frame_total'] = frame_cnt + my_dict[index-1]['nb_frame_total'] 
-        my_dict[index]['resolution'] = resolution
+                my_dict[index]['nb_frame'] = frame_cnt
+                if index == 0:
+                    my_dict[index]['nb_frame_total'] = frame_cnt
+                else:
+                    my_dict[index]['nb_frame_total'] = frame_cnt + my_dict[index-1]['nb_frame_total'] 
+                my_dict[index]['resolution'] = resolution
+                
+                index = index + 1
         
-        index = index + 1
-    vids = []
-    vids = os.listdir(root+sub_dir+'attack/fixed/')
+        with open(self.root+self.data_partion+"/data_summery.json", "w") as outfile:  
+            json.dump(my_dict, outfile) 
+            
 
-    for v in vids:
-        my_dict[index] = {}
-        my_dict[index]['name'] = 'attack/fixed/'+v # such that with root+sub_dir+name we can load video
-        my_dict[index]['person_id'] = int(v.split('_')[2][-3:])
-        my_dict[index]['real_or_spoof'] = 0 # 1 for real and 0 for spoof
-        my_dict[index]['PAI'] = v.split('_')[1] 
-        my_dict[index]['lighting'] = v.split('_')[6][:-4]
-        
-        cap = cv2.VideoCapture(root+sub_dir+my_dict[index]['name'] )
-        frame_cnt = 0
-        while cap.isOpened():
-            ret,frame = cap.read()
-            if ret:
-                frame_cnt = frame_cnt + 1
-                resolution = frame.shape
-            else:
-                break
-        cap.release()
-
-        my_dict[index]['nb_frame'] = frame_cnt    
-        my_dict[index]['nb_frame_total'] = frame_cnt + my_dict[index-1]['nb_frame_total'] 
-        my_dict[index]['resolution'] = resolution
-        
-        index = index + 1
-
-    vids = []
-    vids = os.listdir(root+sub_dir+'attack/hand/')
-
-    for v in vids:
-        my_dict[index] = {}
-        my_dict[index]['name'] = 'attack/hand/'+v # such that with root+sub_dir+name we can load video
-        my_dict[index]['person_id'] = int(v.split('_')[2][-3:])
-        my_dict[index]['real_or_spoof'] = 0 # 1 for real and 0 for spoof
-        my_dict[index]['PAI'] = v.split('_')[1] 
-        my_dict[index]['lighting'] = v.split('_')[6][:-4]
-        
-        cap = cv2.VideoCapture(root+sub_dir+my_dict[index]['name'] )
-        frame_cnt = 0
-        while cap.isOpened():
-            ret,frame = cap.read()
-            if ret:
-                frame_cnt = frame_cnt + 1
-                resolution = frame.shape
-            else:
-                break
-        cap.release()
-
-        my_dict[index]['nb_frame'] = frame_cnt
-        my_dict[index]['nb_frame_total'] = frame_cnt + my_dict[index-1]['nb_frame_total'] 
-        my_dict[index]['resolution'] = resolution
-        
-        index = index + 1
-    
-        
-    
-    with open(root+sub_dir+"data_summery.json", "w") as outfile:  
-        json.dump(my_dict, outfile) 
-        
