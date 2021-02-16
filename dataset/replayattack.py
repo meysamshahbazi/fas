@@ -63,7 +63,7 @@ class ReplayAttack(FASDataset):
 
 
 if __name__ == "__main__":
-    root = '/home/meysam/Desktop/Replay-Attack/'
+    root = '/media/meysam/464C8BC94C8BB26B/Replay-Attack/'
     dataset = ReplayAttack(root,'train',4)
-    for i in dataset.datadict.keys():
-        print(dataset.datadict[i])
+    dataset = ReplayAttack(root,'devel',4)
+    dataset = ReplayAttack(root,'test',4)
