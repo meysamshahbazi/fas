@@ -11,7 +11,7 @@ class FASDataset(data.Dataset):
     this is base class for FAS datasets
     other class must inheritance form this but impliment their own methods for cusotm functionality
     '''
-    def __init__(self,root,data_partion,batch_size,for_train=True):
+    def __init__(self,root,data_partion,batch_size=1,for_train=True):
         self.root = root
         self.data_partion = data_partion
         self.for_train = for_train # for dev and test this is False
