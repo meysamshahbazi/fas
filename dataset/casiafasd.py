@@ -20,7 +20,6 @@ class CasiaFASD(FASDataset):
         for index,l in enumerate(lines):
             my_dict[index] = {} 
             my_dict[index]['name'] = l[:-1]+'.avi'
-            print(my_dict[index]['name'])
             my_dict[index]['person_id'] = l[:-1].split('/')[1]
             if l[:-1].split('/')[2] in ['1','2','HR_1']:
                 my_dict[index]['real_or_spoof'] = 1 # 1 for real and 0 for spoof
