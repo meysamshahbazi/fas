@@ -10,7 +10,7 @@ import torch
 
 class CasiaFASD(FASDataset):
     def crateJsonSummery(self):
-        # data_partion = 'train' 'test' 'dev'
+        # data_partion = 'train' 'test' 'devel'
         #TODO: add PAI, and think about quality!
         
         with open(self.root+self.data_partion+'.txt', "r") as text_file:

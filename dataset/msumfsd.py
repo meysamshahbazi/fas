@@ -11,7 +11,7 @@ import torch
 
 class MsuFsd(FASDataset):
     def crateJsonSummery(self):
-        # data_partion = 'train' 'test' 'dev'
+        # data_partion = 'train' 'test' 'devel'
         #TODO: add PAI, and think about quality!
 
         with open(self.root+self.data_partion+'.txt', "r") as text_file:
@@ -20,19 +20,20 @@ class MsuFsd(FASDataset):
         my_dict = {}
         for index,l in enumerate(lines):
             my_dict[index] = {} 
-            my_dict[index]['name'] = l[:-1]
-            my_dict[index]['person_id'] = int(l[:-1].split('/')[1].split('_')[1][-3:])
-            if l[:-1].split('/')[0] == 'real':
+            
+            print(int(l[:-1].split('/')[2].split('_')[1][-3:]) )
+            my_dict[index]['person_id'] = int(l[:-1].split('/')[2].split('_')[1][-3:])
+            if l[:-1].split('/')[1] == 'real':
                 my_dict[index]['real_or_spoof'] = 1 # 1 for real and 0 for spoof
             else:
                 my_dict[index]['real_or_spoof'] = 0 # 1 for real and 0 for spoof
             if os.path.isfile(self.root+l[:-1]+'.mp4'):
-                my_dict[index]['format'] = '.mp4'
+                my_dict[index]['name'] = l[:-1]+'.mp4'
             elif os.path.isfile(self.root+l[:-1]+'.mov'):
-                my_dict[index]['format'] = '.mov'
+                my_dict[index]['name'] = l[:-1]+'.mov'
             else:
-                print(l)
-            cap = cv2.VideoCapture(self.root+my_dict[index]['name']+my_dict[index]['format'])
+                print("ERROR dose file dose not exist: ",l)
+            cap = cv2.VideoCapture(self.root+my_dict[index]['name'])
             frame_cnt = 0
             while cap.isOpened():
                 ret,frame = cap.read()
@@ -54,3 +55,9 @@ class MsuFsd(FASDataset):
 
 
 
+if __name__ == "__main__":
+    root = '/media/meysam/464C8BC94C8BB26B/MSU-MFSD/'
+    dataset = MsuFsd(root,'train')
+    dataset = MsuFsd(root,'test')
+    dataset = MsuFsd(root,'devel')
+    
