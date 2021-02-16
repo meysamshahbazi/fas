@@ -7,10 +7,25 @@ import json
 import torch
 
 class FASDataset(data.Dataset):
-'''
-this is base class for FAS datasets
-other class must inheritance form this but impliment their own methods for cusotm functionality
-'''
+    '''
+    this is base class for FAS datasets
+    other class must inheritance form this but impliment their own methods for cusotm functionality
+    '''
+    def __init__(self,root,data_partion,batch_size,for_train=True):
+        self.root = root
+        self.data_partion = data_partion
+        self.for_train = for_train # for dev and test this is False
+        self.vid_idx = 0
+        self.vid_list = []
+        self.opened_vid = {}
+        self.batch_size = batch_size
+        if not os.path.isfile(self.root+self.data_partion+'.json'):
+          print("Json doesnt Exist! try to create it and it would take a time!")
+          self.crateJsonSummery()
+        with open(self.root+self.data_partion+'.json', 'r') as openfile:
+            self.datadict = json.load(openfile)  
+
+
 
     def __len__(self):
         return self.datadict[str(len(self.datadict)-1)]['nb_frame_total']
