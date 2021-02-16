@@ -19,14 +19,15 @@ class CasiaFASD(FASDataset):
         my_dict = {}
         for index,l in enumerate(lines):
             my_dict[index] = {} 
-            my_dict[index]['name'] = l[:-1]
+            my_dict[index]['name'] = l[:-1]+'.avi'
+            print(my_dict[index]['name'])
             my_dict[index]['person_id'] = l[:-1].split('/')[1]
             if l[:-1].split('/')[2] in ['1','2','HR_1']:
                 my_dict[index]['real_or_spoof'] = 1 # 1 for real and 0 for spoof
             else:
                 my_dict[index]['real_or_spoof'] = 0 # 1 for real and 0 for spoof
                 
-            cap = cv2.VideoCapture(self.root+my_dict[index]['name']+'.avi')
+            cap = cv2.VideoCapture(self.root+my_dict[index]['name'])
             frame_cnt = 0
             while cap.isOpened():
                 ret,frame = cap.read()
@@ -45,3 +46,14 @@ class CasiaFASD(FASDataset):
 
         with open(self.root+self.data_partion+".json", "w") as outfile:  
             json.dump(my_dict, outfile) 
+
+
+
+if __name__ == "__main__":
+    root = '/media/meysam/464C8BC94C8BB26B/Casia-FASD/'
+    dataset = CasiaFASD(root,'train',4)
+    dataset = CasiaFASD(root,'test',4)
+    dataset = CasiaFASD(root,'devel',4)
+    
+
+
