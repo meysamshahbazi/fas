@@ -9,21 +9,6 @@ import torch
 
 
 class ReplayAttack(FASDataset):
-    def __init__(self,root,data_partion,batch_size,for_train=True):
-        self.root = root
-        self.data_partion = data_partion
-        self.for_train = for_train # for dev and test this is False
-        self.vid_idx = 0
-        self.vid_list = []
-        self.opened_vid = {}
-        self.batch_size = batch_size
-        if not os.path.isfile(self.root+self.data_partion+'/data_summery.json'):
-          print("Json doesnt Exist! try to create it and it would take a time!")
-          self.crateJsonSummery()
-        with open(self.root+self.data_partion+'/data_summery.json', 'r') as openfile:
-            self.datadict = json.load(openfile)  
-            
-
     def crateJsonSummery(self):
         """
         this function creates a dict that describe nessury information of dataset
@@ -71,6 +56,6 @@ class ReplayAttack(FASDataset):
                 
                 index = index + 1
         
-        with open(self.root+self.data_partion+"/data_summery.json", "w") as outfile:  
+        with open(self.root+self.data_partion+".json", "w") as outfile:  
             json.dump(my_dict, outfile) 
             
