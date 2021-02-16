@@ -37,7 +37,7 @@ class FASDataset(data.Dataset):
                 if int(len(self.opened_vid)) == self.batch_size:
                     self.opened_vid = {}
                 self.opened_vid[self.vid_idx] = []
-                cap = cv2.VideoCapture(self.root+self.data_partion+'/'+self.datadict[str(self.vid_idx)]['name'] )
+                cap = cv2.VideoCapture(self.root+self.datadict[str(self.vid_idx)]['name'] )
                 while cap.isOpened():
                     ret,frame = cap.read()
                     if ret:
@@ -56,7 +56,7 @@ class FASDataset(data.Dataset):
                     self.vid_idx += 1
                     
                 self.vid_list = []
-                cap = cv2.VideoCapture(self.root+self.data_partion+'/'+self.datadict[str(self.vid_idx)]['name'] )
+                cap = cv2.VideoCapture(self.root+self.datadict[str(self.vid_idx)]['name'] )
                 while cap.isOpened():
                     ret,frame = cap.read()
                     if ret:
