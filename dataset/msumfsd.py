@@ -19,9 +19,7 @@ class MsuFsd(FASDataset):
 
         my_dict = {}
         for index,l in enumerate(lines):
-            my_dict[index] = {} 
-            
-            print(int(l[:-1].split('/')[2].split('_')[1][-3:]) )
+            my_dict[index] = {}             
             my_dict[index]['person_id'] = int(l[:-1].split('/')[2].split('_')[1][-3:])
             if l[:-1].split('/')[1] == 'real':
                 my_dict[index]['real_or_spoof'] = 1 # 1 for real and 0 for spoof
