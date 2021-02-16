@@ -30,7 +30,6 @@ class ReplayAttack(FASDataset):
                     my_dict[index]['lighting'] = v.split('_')[4]
                 else:
                     my_dict[index]['real_or_spoof'] = 0 # 1 for real and 0 for spoof
-                    print(v.split('_'))
                     my_dict[index]['PAI'] = v.split('_')[1] 
                     my_dict[index]['person_id'] = int(v.split('_')[2][-3:])
                     my_dict[index]['lighting'] = v.split('_')[6][:-4]
