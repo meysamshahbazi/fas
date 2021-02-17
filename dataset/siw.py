@@ -52,3 +52,15 @@ class SiW(FASDataset):
             else:
                 my_dict[index]['nb_frame_total'] = frame_cnt + my_dict[index-1]['nb_frame_total'] 
             my_dict[index]['resolution'] = resolution
+
+
+
+# /media/meysam/901292F51292E010/SiW/SiW_release/
+
+
+if __name__ == "__main__":
+    root = '/media/meysam/464C8BC94C8BB26B/MSU-MFSD/'
+    dataset = SiW(root,'train')
+    dataset = SiW(root,'test')
+    dataset = SiW(root,'devel')
+
