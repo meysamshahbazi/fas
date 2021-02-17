@@ -53,13 +53,18 @@ class SiW(FASDataset):
                 my_dict[index]['nb_frame_total'] = frame_cnt + my_dict[index-1]['nb_frame_total'] 
             my_dict[index]['resolution'] = resolution
 
+            print(my_dict[index])
+            print('-------------------------------------')
+
+        with open(self.root+self.data_partion+".json", "w") as outfile:  
+            json.dump(my_dict, outfile) 
 
 
-# /media/meysam/901292F51292E010/SiW/SiW_release/
+
 
 
 if __name__ == "__main__":
-    root = '/media/meysam/464C8BC94C8BB26B/MSU-MFSD/'
+    root = '/media/meysam/901292F51292E010/SiW/SiW_release/'
     dataset = SiW(root,'train')
     dataset = SiW(root,'test')
     dataset = SiW(root,'devel')
