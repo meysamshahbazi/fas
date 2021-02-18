@@ -2,7 +2,7 @@ import matplotlib.pyplot as plt
 import numpy as np
 
 
-def calcEER(lbl,pred,plot=True,precision=0.01):
+def calcEER(lbl,pred,epoch,path,plot=True,precision=0.01):
   '''
   lbl: list of all labels in whole dataset
   pred: list of all prediction of model
@@ -20,8 +20,11 @@ def calcEER(lbl,pred,plot=True,precision=0.01):
     FRR[k] = np.logical_and(pre==0,lbl ==1).sum()*100/(lbl==1).sum()
 
 
-  index_EER = np.argmin(np.abs(FAR-FRR))
-  if plot:#TODO: save results
+  #index_EER = np.argmin(np.abs(FAR-FRR))
+  indecis_of_min = np.where(np.abs(FAR-FRR)==np.min(np.abs(FAR-FRR)))[0]
+  index_EER = indecis_of_min[len(indecis_of_min)//2] # in this way we got the medina index of EER
+
+  if plot:
     plt.plot(threshold,FAR,label='FAR')
     plt.plot(threshold,FRR,label='FRR')
     plt.vlines(threshold[index_EER],0,100,label='threshold: '+str(threshold[index_EER]),color='r',linestyles='dashed')
@@ -34,7 +37,10 @@ def calcEER(lbl,pred,plot=True,precision=0.01):
     plt.ylabel('acc')
     plt.title(' acc per threshold')
     plt.grid()
-    plt.show()
+    plt.savefig('outputs/'+path+'/eer_figs/ep_'+str(epoch)+'.png')
+    np.savetxt('outputs/'+path+'/eer_figs/ep_'+str(epoch)+'_FAR.csv', np.array(FAR), delimiter=',', fmt='%f')
+    np.savetxt('outputs/'+path+'/eer_figs/ep_'+str(epoch)+'_FRR.csv', np.array(FRR), delimiter=',', fmt='%f')
+    # plt.show()
 
     return FAR,FRR,threshold[index_EER]
 
