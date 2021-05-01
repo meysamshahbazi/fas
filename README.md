@@ -1,4 +1,4 @@
-this is main repository for my master thesis at university of tehran,iran
-the title of project is face anti spoofing
+Face Anti spoofing with deep learning
+as Msc thesis in university of Tehran, Iran
 ## project structure
 
