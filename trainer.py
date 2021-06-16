@@ -69,7 +69,7 @@ def dev(net,criterion,dev_loader,device,epoch,path):
         items = items.to(device)
         classes = classes.to(device)
         
-        outputs = net(items)      # Do the forward pass
+        outputs,emb = net(items)      # Do the forward pass
         loss += criterion(outputs, classes,emb).item() # Calculate the loss
         outputs = sigmoid(outputs) # use sigmoid for infering
         # Record the all labels of dataset and prediction of model for later use!
