@@ -38,6 +38,7 @@ def calcEER(lbl,pred,epoch,path,plot=True,precision=0.01):
     plt.title(' acc per threshold')
     plt.grid()
     plt.savefig('outputs/'+path+'/eer_figs/ep_'+str(epoch)+'.png')
+    plt.close()
     np.savetxt('outputs/'+path+'/eer_figs/ep_'+str(epoch)+'_FAR.csv', np.array(FAR), delimiter=',', fmt='%f')
     np.savetxt('outputs/'+path+'/eer_figs/ep_'+str(epoch)+'_FRR.csv', np.array(FRR), delimiter=',', fmt='%f')
     # plt.show()

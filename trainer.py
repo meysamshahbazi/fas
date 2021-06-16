@@ -184,6 +184,7 @@ def get_dataset(namespace):
     elif namespace.dataset == 'replay':
         root = '/media/meysam/464C8BC94C8BB26B/Replay-Attack/' 
         #root = '/home/meysam/Desktop/Replay-Attack/'
+        #root = '/content/replayattack/'
         data_partion = 'train'
         train_dataset = ReplayAttack(root,data_partion,namespace.train_batch_size,for_train=True)
         data_partion = 'devel'
