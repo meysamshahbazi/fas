@@ -15,7 +15,6 @@ class ArcB(nn.Module):
         w = list(self.net.parameters())[-2]
         b = list(self.net.parameters())[-1]
         s = torch.norm(w.T)*torch.norm(emb,dim=1)
-        print(s.shape)
         s = s.unsqueeze(dim=1)
         theta = torch.acos((emb.matmul(w.T))/s)# take care about sign of m !!
         ss = 1
