@@ -1,4 +1,4 @@
 dataset/__pycache__/
 model/__pycache__/
-protocol/__pycache__/
+*/__pycache__/
 outputs/*/*
