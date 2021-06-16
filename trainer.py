@@ -10,6 +10,7 @@ from dataset.oulunpu import OuluNPU
 from dataset.roseyoutu import RoseYoutu
 from dataset.siw import SiW
 from model.alexnet import AlexNet,AlexNetLite
+from loss.loss import BCEWithLogits,ArcB
 from torch.utils import data
 import matplotlib.pyplot as plt
 import os
@@ -34,10 +35,13 @@ def train(net,criterion,optimizer,train_loader,device,epoch,path):
 
         optimizer.zero_grad()     # Clear off the gradients from any past operation
         
-
-        outputs = net(items)      # Do the forward pass
-
-        loss = criterion(outputs, classes) # Calculate the loss
+        #print(items.shape)
+        outputs,emb = net(items)      # Do the forward pass
+        #print("emb shape: "+str(emb.shape))
+        #print(outputs.shape)
+        #print(classes.shape)
+        loss = criterion(outputs, classes,emb) # Calculate the loss
+        print(loss)
         iter_loss += loss.item()# Accumulate the loss
         loss.backward()           # Calculate the gradients with help of back propagation
 
@@ -66,7 +70,7 @@ def dev(net,criterion,dev_loader,device,epoch,path):
         classes = classes.to(device)
         
         outputs = net(items)      # Do the forward pass
-        loss += criterion(outputs, classes).item() # Calculate the loss
+        loss += criterion(outputs, classes,emb).item() # Calculate the loss
         outputs = sigmoid(outputs) # use sigmoid for infering
         # Record the all labels of dataset and prediction of model for later use!
         lbl += classes.cpu().flatten().tolist()    
@@ -117,6 +121,7 @@ def proc_args():
     default='BCEWithLogits',
     help='the criterion for claculation loss which can be following:\n \
     BCEWithLogits\n \
+    ArcB\n \
     '
     )
     parser.add_argument(
@@ -227,9 +232,11 @@ def get_optimizer(net,namespace):
 
     return optimizer
 
-def get_criterion(namespace):
+def get_criterion(namespace,net):
     if namespace.criterion == 'BCEWithLogits':
-        criterion = nn.BCEWithLogitsLoss()
+        criterion = BCEWithLogits()
+    elif namespace.criterion == 'ArcB':
+        criterion = ArcB(net,m=0.35)
 
     return criterion
 
@@ -245,7 +252,7 @@ def main():
     net.to(device)
 
     # Our loss function
-    criterion = get_criterion(namespace)
+    criterion = get_criterion(namespace,net)
     # Our optimizer
     
 

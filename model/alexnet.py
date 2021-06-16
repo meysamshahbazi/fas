@@ -34,8 +34,8 @@ class AlexNet(nn.Module):
         self.linear1 = nn.Linear(in_features=(256 * 6 * 6), out_features=4096)
         
         self.drop2 = nn.Dropout(p=0.5, inplace=True)
-        self.linear2 = nn.Linear(in_features=4096, out_features=4096)
-        self.linear3 = nn.Linear(in_features=4096, out_features=num_classes)
+        self.linear2 = nn.Linear(in_features=4096, out_features=512)
+        self.linear3 = nn.Linear(in_features=512, out_features=num_classes)
   
     def init_bias(self):
         for layer in self.net:
@@ -74,9 +74,9 @@ class AlexNet(nn.Module):
         x = self.drop1(x)
         x = self.linear1(x)
         x = self.drop2(x)
-        x = self.linear2(x)
-        x = self.linear3(x)
-        return x
+        emb = self.linear2(x)
+        x = self.linear3(emb)
+        return x,emb
 
 
 class AlexNetLite(nn.Module):
@@ -111,7 +111,7 @@ class AlexNetLite(nn.Module):
         
         self.drop2 = nn.Dropout(p=0.5, inplace=True)
         self.linear2 = nn.Linear(in_features=128, out_features=128)
-        self.linear3 = nn.Linear(in_features=128, out_features=num_classes)
+        self.linear3 = nn.Linear(in_features=128, out_features=num_classes,bias = False)
   
     def init_bias(self):
         for layer in self.net:
@@ -151,10 +151,10 @@ class AlexNetLite(nn.Module):
 
         x = self.drop1(x)
         x = self.linear1(x)
-        #x = self.drop2(x)
-        #x = self.linear2(x)
-        x = self.linear3(x)
-        return x
+        x = self.drop2(x)
+        emb = self.linear2(x)
+        x = self.linear3(emb)
+        return x,emb
 
 
 
