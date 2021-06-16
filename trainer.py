@@ -41,7 +41,7 @@ def train(net,criterion,optimizer,train_loader,device,epoch,path):
         #print(outputs.shape)
         #print(classes.shape)
         loss = criterion(outputs, classes,emb) # Calculate the loss
-        #print(loss)
+        print(loss)
         iter_loss += loss.item()# Accumulate the loss
         loss.backward()           # Calculate the gradients with help of back propagation
 
@@ -237,7 +237,7 @@ def get_criterion(namespace,net):
     if namespace.criterion == 'BCEWithLogits':
         criterion = BCEWithLogits()
     elif namespace.criterion == 'ArcB':
-        criterion = ArcB(net,m=0.35)
+        criterion = ArcB(net,m=0)
 
     return criterion
 
