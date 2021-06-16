@@ -15,8 +15,8 @@ class ArcB(nn.Module):
         w = list(self.net.parameters())[-1]
         s = torch.norm(w.T)*torch.norm(emb,dim=1)
         s = s.unsqueeze(dim=1)
-        theta = torch.acos((emb.matmul(w.T))/s)
-        l = classes*torch.log(1+torch.exp(-s*torch.cos(theta+self.m))) +(1-classes)*torch.log(1+torch.exp(-s*torch.cos(theta-self.m)))
+        theta = torch.acos((emb.matmul(w.T))/s)# take care about sign of m !!
+        l = classes*torch.log(1+torch.exp(-s*torch.cos(theta-self.m))) +(1-classes)*torch.log(1+torch.exp(-s*torch.cos(theta+self.m)))
         return l.sum()
 
 
