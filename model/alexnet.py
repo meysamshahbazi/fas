@@ -111,7 +111,7 @@ class AlexNetLite(nn.Module):
         
         self.drop2 = nn.Dropout(p=0.5, inplace=True)
         self.linear2 = nn.Linear(in_features=128, out_features=128)
-        self.linear3 = nn.Linear(in_features=128, out_features=num_classes,bias = True)
+        self.linear3 = nn.Linear(in_features=128, out_features=num_classes,bias = False)
   
     def init_bias(self):
         for layer in self.net:

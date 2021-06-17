@@ -41,7 +41,7 @@ def train(net,criterion,optimizer,train_loader,device,epoch,path):
         #print(outputs.shape)
         #print(classes.shape)
         loss = criterion(outputs, classes,emb) # Calculate the loss
-        print(loss)
+        #print(loss)
         iter_loss += loss.item()# Accumulate the loss
         loss.backward()           # Calculate the gradients with help of back propagation
 
@@ -138,14 +138,14 @@ def proc_args():
     )
     parser.add_argument(
     '--train_batch_size',
-    default=8,
+    default=128,
     type = int,
     help='batch size for train (default: 8)'
     )
 
     parser.add_argument(
     '--devel_batch_size',
-    default=8,
+    default=128,
     type = int,
     help='batch size for development (default: 8)'
     )
