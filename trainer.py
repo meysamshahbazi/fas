@@ -10,7 +10,7 @@ from dataset.oulunpu import OuluNPU
 from dataset.roseyoutu import RoseYoutu
 from dataset.siw import SiW
 from model.alexnet import AlexNet,AlexNetLite
-from loss.loss import BCEWithLogits,ArcB
+from loss.loss import BCEWithLogits,ArcB,IdBce
 from torch.utils import data
 import matplotlib.pyplot as plt
 import os
@@ -27,21 +27,20 @@ def train(net,criterion,optimizer,train_loader,device,epoch,path):
     
     net.train()                   # Put the network into training mode
     optimizer.zero_grad()     # Clear off the gradients from any past operation
-    for i, (items, classes) in enumerate(train_loader):
+    for i, (items, classes,ids) in enumerate(train_loader):
         # If we have GPU, shift the data to GPU
 
         items = items.to(device)
         classes = classes.to(device)
-
+        ids = ids.to(device)
         optimizer.zero_grad()     # Clear off the gradients from any past operation
-        
         #print(items.shape)
         outputs,emb = net(items)      # Do the forward pass
         #print("emb shape: "+str(emb.shape))
         #print(outputs.shape)
         #print(classes.shape)
-        loss = criterion(outputs, classes,emb) # Calculate the loss
-        #print(loss)
+        loss = criterion(outputs, classes,emb,ids) # Calculate the loss
+        print(loss)
         iter_loss += loss.item()# Accumulate the loss
         loss.backward()           # Calculate the gradients with help of back propagation
 
@@ -122,6 +121,7 @@ def proc_args():
     help='the criterion for claculation loss which can be following:\n \
     BCEWithLogits\n \
     ArcB\n \
+    IdBce\n \
     '
     )
     parser.add_argument(
@@ -182,8 +182,8 @@ def get_dataset(namespace):
         data_partion = 'devel'
         dev_dataset = OuluNPU(root,data_partion,namespace.devel_batch_size,for_train=False)
     elif namespace.dataset == 'replay':
-        root = '/media/meysam/464C8BC94C8BB26B/Replay-Attack/' 
-        #root = '/home/meysam/Desktop/Replay-Attack/'
+        #root = '/media/meysam/464C8BC94C8BB26B/Replay-Attack/' 
+        root = '/home/meysam/Desktop/Replay-Attack/'
         #root = '/content/replayattack/'
         data_partion = 'train'
         train_dataset = ReplayAttack(root,data_partion,namespace.train_batch_size,for_train=True)
@@ -237,8 +237,9 @@ def get_criterion(namespace,net):
     if namespace.criterion == 'BCEWithLogits':
         criterion = BCEWithLogits()
     elif namespace.criterion == 'ArcB':
-        criterion = ArcB(net,m=0.75,s=1)
-
+        criterion = ArcB(net,m=0.75,s=0.75)
+    elif namespace.criterion == 'IdBce':
+        criterion = IdBce(alpha=0.5,M=0.5)
     return criterion
 
 def main():

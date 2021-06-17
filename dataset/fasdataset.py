@@ -76,7 +76,9 @@ class FASDataset(data.Dataset):
         x = torch.FloatTensor(x)
         y = self.datadict[str(self.vid_idx)]['real_or_spoof']
         y = torch.FloatTensor([y])
-        return x,y
+        id = self.datadict[str(self.vid_idx)]['person_id']
+        id = torch.FloatTensor([id])
+        return x,y,id
 
     def clear_cache(self):#this must be called after end of each epoch in training
       self.opened_vid = {}
