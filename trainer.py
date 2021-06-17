@@ -41,7 +41,7 @@ def train(net,criterion,optimizer,train_loader,device,epoch,path):
         #print(outputs.shape)
         #print(classes.shape)
         loss = criterion(outputs, classes,emb) # Calculate the loss
-        #print(loss)
+        print(loss)
         iter_loss += loss.item()# Accumulate the loss
         loss.backward()           # Calculate the gradients with help of back propagation
 
@@ -138,14 +138,14 @@ def proc_args():
     )
     parser.add_argument(
     '--train_batch_size',
-    default=128,
+    default=8,
     type = int,
     help='batch size for train (default: 8)'
     )
 
     parser.add_argument(
     '--devel_batch_size',
-    default=128,
+    default=8,
     type = int,
     help='batch size for development (default: 8)'
     )
@@ -182,8 +182,8 @@ def get_dataset(namespace):
         data_partion = 'devel'
         dev_dataset = OuluNPU(root,data_partion,namespace.devel_batch_size,for_train=False)
     elif namespace.dataset == 'replay':
-        root = '/media/meysam/464C8BC94C8BB26B/Replay-Attack/' 
-        #root = '/home/meysam/Desktop/Replay-Attack/'
+        #root = '/media/meysam/464C8BC94C8BB26B/Replay-Attack/' 
+        root = '/home/meysam/Desktop/Replay-Attack/'
         #root = '/content/replayattack/'
         data_partion = 'train'
         train_dataset = ReplayAttack(root,data_partion,namespace.train_batch_size,for_train=True)
