@@ -62,14 +62,14 @@ def dev(net,criterion,dev_loader,device,epoch,path):
     pred = []
     net.eval() # Put the network into evaluate mode
 
-    for i, (items, classes) in enumerate(dev_loader):
+    for i, (items, classes,ids) in enumerate(dev_loader):
         torch.cuda.empty_cache()
         # Convert torch tensor to Variable
         items = items.to(device)
         classes = classes.to(device)
-        
+        ids = ids.to(device)
         outputs,emb = net(items)      # Do the forward pass
-        loss += criterion(outputs, classes,emb).item() # Calculate the loss
+        loss += criterion(outputs, classes,emb,ids).item() # Calculate the loss
         outputs = sigmoid(outputs) # use sigmoid for infering
         # Record the all labels of dataset and prediction of model for later use!
         lbl += classes.cpu().flatten().tolist()    
