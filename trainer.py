@@ -40,7 +40,7 @@ def train(net,criterion,optimizer,train_loader,device,epoch,path):
         #print(outputs.shape)
         #print(classes.shape)
         loss = criterion(outputs, classes,emb,ids) # Calculate the loss
-        print(loss)
+        #print(loss)
         iter_loss += loss.item()# Accumulate the loss
         loss.backward()           # Calculate the gradients with help of back propagation
 

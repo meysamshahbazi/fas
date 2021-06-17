@@ -49,5 +49,5 @@ class IdBce(nn.Module):
         for i,j in itertools.combinations(range(len(ids)), 2):
             l+= 0.5*int(ids[i]==ids[j]and classes[i]!=classes[j])*((emb[i]-emb[j])**2).sum()
             l+=int(ids[i]!=ids[j]and classes[i]==classes[j])*torch.max(torch.FloatTensor([0,self.M-((emb[i]-emb[j])**2).sum()]))
-        print("l is:",l)
+        #print("l is:",l)
         return self.bce(outputs, classes) + self.alpha*l
