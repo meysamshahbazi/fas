@@ -35,7 +35,7 @@ class BCEWithLogits(nn.Module):
     def forward(self,outputs,classes,emb):
         return self.criterion(outputs, classes)
 
-
+'''
 class IdBce(nn.Module):
     def __init__(self,alpha=0.5,M=0.5):
         super(IdBce,self).__init__()
@@ -48,6 +48,38 @@ class IdBce(nn.Module):
         emb = F.normalize(emb)
         for i,j in itertools.combinations(range(len(ids)), 2):
             l+= 0.5*int(ids[i]==ids[j]and classes[i]!=classes[j])*((emb[i]-emb[j])**2).sum()
-            l+=int(ids[i]!=ids[j]and classes[i]==classes[j])*torch.max(torch.FloatTensor([0,self.M-((emb[i]-emb[j])**2).sum()]))
+            l+=int(ids[i]!=ids[j]and classes[i]==classes[j])*torch.max(torch.FloatTensor([0,self.M-(torch.abs(emb[i]-emb[j])).sum()]))
         #print("l is:",l)
         return self.bce(outputs, classes) + self.alpha*l
+
+'''
+
+class IdBce(nn.Module):
+    def __init__(self,alpha=0.5,M=0.5):
+        super(IdBce,self).__init__()
+        self.alpha = alpha
+        self.M = M
+        self.bce =  nn.BCEWithLogitsLoss()
+
+    def forward(self,outputs,classes,emb,ids):
+            
+        idx1 = [] #index for same id but diffrent class label
+        idx2 = [] #index for same class label but diffrent id
+        l = 0 
+        emb = F.normalize(emb)
+
+        for i,j in itertools.combinations(range(len(ids)), 2):
+            if ids[i]==ids[j]and classes[i]!=classes[j]:
+                idx1.append([i,j])
+            if ids[i]!=ids[j]and classes[i]==classes[j]:
+                idx2.append([i,j])
+
+
+        idx1 = torch.Tensor(idx1).type(torch.long)
+        idx2 = torch.Tensor(idx2).type(torch.long)
+
+        l += torch.norm((emb[idx1[:,0]]-emb[idx1[:,1]]),dim=1).mean()
+        l += torch.max(torch.zeros(len(idx2),device=device),M-torch.norm((emb[idx2[:,0]]-emb[idx2[:,1]]),1,dim=1)).mean()
+        return self.bce(outputs, classes) + self.alpha*l
+
+
