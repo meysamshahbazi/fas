@@ -79,7 +79,7 @@ class IdBce(nn.Module):
         idx2 = torch.Tensor(idx2).type(torch.long)
 
         l += torch.norm((emb[idx1[:,0]]-emb[idx1[:,1]]),dim=1).mean()
-        l += torch.max(torch.zeros(len(idx2),device=device),M-torch.norm((emb[idx2[:,0]]-emb[idx2[:,1]]),1,dim=1)).mean()
+        l += torch.max(torch.zeros(len(idx2),device=emb.device),self.M-torch.norm((emb[idx2[:,0]]-emb[idx2[:,1]]),1,dim=1)).mean()
         return self.bce(outputs, classes) + self.alpha*l
 
 
