@@ -10,6 +10,7 @@ from dataset.oulunpu import OuluNPU
 from dataset.roseyoutu import RoseYoutu
 from dataset.siw import SiW
 from model.alexnet import AlexNet,AlexNetLite
+from model.cnn import CNN
 from loss.loss import BCEWithLogits,ArcB,IdBce
 from torch.utils import data
 import matplotlib.pyplot as plt
@@ -40,6 +41,7 @@ def train(net,criterion,optimizer,train_loader,device,epoch,path):
         #print(outputs.shape)
         #print(classes.shape)
         loss = criterion(outputs, classes,emb,ids) # Calculate the loss
+
         #print(loss)
         iter_loss += loss.item()# Accumulate the loss
         loss.backward()           # Calculate the gradients with help of back propagation
@@ -138,16 +140,22 @@ def proc_args():
     )
     parser.add_argument(
     '--train_batch_size',
-    default=8,
+    default=128,
     type = int,
-    help='batch size for train (default: 8)'
+    help='batch size for train (default: 128)'
     )
 
     parser.add_argument(
     '--devel_batch_size',
-    default=8,
+    default=128,
     type = int,
-    help='batch size for development (default: 8)'
+    help='batch size for development (default: 128)'
+    )
+    parser.add_argument(
+    '--dbg',
+    default=False,
+    type = bool,
+    help='Print Debug info (default: False)'
     )
 
     
@@ -182,8 +190,8 @@ def get_dataset(namespace):
         data_partion = 'devel'
         dev_dataset = OuluNPU(root,data_partion,namespace.devel_batch_size,for_train=False)
     elif namespace.dataset == 'replay':
-        #root = '/media/meysam/464C8BC94C8BB26B/Replay-Attack/' 
-        root = '/home/meysam/Desktop/Replay-Attack/'
+        root = '/media/meysam/464C8BC94C8BB26B/Replay-Attack/' 
+        #root = '/home/meysam/Desktop/Replay-Attack/'
         #root = '/content/replayattack/'
         data_partion = 'train'
         train_dataset = ReplayAttack(root,data_partion,namespace.train_batch_size,for_train=True)
@@ -225,6 +233,8 @@ def get_dataset(namespace):
 def get_net(namespace):
     if  namespace.model == 'alexnet':
         net = AlexNetLite()
+    elif  namespace.model == 'cnn':
+        net = CNN()
     #TODO: complete this
     return net
 def get_optimizer(net,namespace):

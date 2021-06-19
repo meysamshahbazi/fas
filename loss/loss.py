@@ -69,17 +69,18 @@ class IdBce(nn.Module):
         emb = F.normalize(emb)
 
         for i,j in itertools.combinations(range(len(ids)), 2):
-            if ids[i]==ids[j]and classes[i]!=classes[j]:
+            if ids[i]==ids[j] and classes[i]!=classes[j]:
                 idx1.append([i,j])
-            if ids[i]!=ids[j]and classes[i]==classes[j]:
+            if ids[i]!=ids[j] and classes[i]==classes[j]:
                 idx2.append([i,j])
 
 
         idx1 = torch.Tensor(idx1).type(torch.long)
         idx2 = torch.Tensor(idx2).type(torch.long)
-
-        l += torch.norm((emb[idx1[:,0]]-emb[idx1[:,1]]),dim=1).mean()
-        l += torch.max(torch.zeros(len(idx2),device=emb.device),self.M-torch.norm((emb[idx2[:,0]]-emb[idx2[:,1]]),1,dim=1)).mean()
+        if len(idx1)>0:
+            l += torch.norm((emb[idx1[:,0]]-emb[idx1[:,1]]),dim=1).mean()
+        if len(idx2)>0:
+            l += torch.max(torch.zeros(len(idx2),device=emb.device),self.M-torch.norm((emb[idx2[:,0]]-emb[idx2[:,1]]),1,dim=1)).mean()
         return self.bce(outputs, classes) + self.alpha*l
 
 

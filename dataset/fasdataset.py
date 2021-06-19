@@ -41,6 +41,7 @@ class FASDataset(data.Dataset):
                 while cap.isOpened():
                     ret,frame = cap.read()
                     if ret:
+                        frame = cv2.resize(frame, (320, 240))
                         self.opened_vid[self.vid_idx].append(frame)
                     else:
                         break
@@ -60,6 +61,7 @@ class FASDataset(data.Dataset):
                 while cap.isOpened():
                     ret,frame = cap.read()
                     if ret:
+                        frame = cv2.resize(frame, (320, 240))
                         self.vid_list.append(frame)
                     else:
                         break
@@ -71,12 +73,12 @@ class FASDataset(data.Dataset):
                 frame_idx = index
             
             x = self.vid_list[frame_idx]
-            
+          
         x = x.transpose(2,1,0)
         x = torch.FloatTensor(x)
-        y = self.datadict[str(self.vid_idx)]['real_or_spoof']
+        y = int(self.datadict[str(self.vid_idx)]['real_or_spoof'])
         y = torch.FloatTensor([y])
-        id = self.datadict[str(self.vid_idx)]['person_id']
+        id = int(self.datadict[str(self.vid_idx)]['person_id'])
         id = torch.FloatTensor([id])
         return x,y,id
 
