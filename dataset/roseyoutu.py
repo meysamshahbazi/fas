@@ -49,7 +49,7 @@ class RoseYoutu(FASDataset):
             else:
                 my_dict[index]['nb_frame_total'] = frame_cnt + my_dict[index-1]['nb_frame_total'] 
             my_dict[index]['resolution'] = resolution
-            print(my_dict[index])
+            #print(my_dict[index])
         with open(self.root+self.data_partion+".json", "w") as outfile:  
             json.dump(my_dict, outfile) 
 

@@ -12,7 +12,7 @@ class ArcB(nn.Module):
         self.net = net
 
 
-    def forward(self,outputs,classes,emb):
+    def forward(self,outputs,classes,emb,ids):
         w = list(self.net.parameters())[-1]
         w = F.normalize(w)
         emb = F.normalize(emb)
@@ -21,6 +21,9 @@ class ArcB(nn.Module):
         (1-classes)*torch.log(1-1/(1+torch.exp(-self.s*torch.cos(theta+self.m))))
         #l = -classes*torch.log(1/(1+torch.exp(-self.s*torch.cos(theta+self.m)))) -\
         #(1-classes)*torch.log(1/(1+torch.exp(-self.s*torch.cos(theta-self.m))))
+    
+        l = -classes*torch.log(torch.exp(self.s*torch.cos(theta+self.m))/(torch.exp(self.s*torch.cos(theta+self.m))+torch.exp(-self.s*torch.cos(theta+self.m))))-\
+        (1-classes)*torch.log(torch.exp(-self.s*torch.cos(theta-self.m))/(torch.exp(-self.s*torch.cos(theta-self.m))+torch.exp(self.s*torch.cos(theta-self.m))))
         self.net.linear3.weight = torch.nn.Parameter(w*self.s) 
         #list(self.net.parameters())[-1] = w*self.s
         return l.mean()
@@ -32,7 +35,7 @@ class BCEWithLogits(nn.Module):
         super(BCEWithLogits,self).__init__()
         self.criterion = nn.BCEWithLogitsLoss()
 
-    def forward(self,outputs,classes,emb):
+    def forward(self,outputs,classes,emb,ids):
         return self.criterion(outputs, classes)
 
 '''
