@@ -23,10 +23,10 @@ class CNN(nn.Module):
         
         self.amp = nn.AdaptiveMaxPool2d((4,4))
         
-        self.fc1 = nn.Linear(128 * 4 * 4, 1024)
-        self.fc2 = nn.Linear(1024, 512)
-        self.bn1d = nn.BatchNorm1d(512)
-        self.fc3 = nn.Linear(512, 1,bias=False)
+        self.fc1 = nn.Linear(128 * 4 * 4, 256)
+        #self.fc2 = nn.Linear(1024, 512)
+        self.bn1d = nn.BatchNorm1d(256)
+        self.fc2 = nn.Linear(256, 1,bias=False)
         
         
     def forward(self,x):
@@ -52,12 +52,14 @@ class CNN(nn.Module):
         x = x.view(x.size(0), -1)
         x = F.dropout(x, p=0.5)
         x = F.relu(self.fc1(x))
-        x = F.dropout(x, p=0.5)
-        x = self.fc2(x)
+        #x = F.dropout(x, p=0.5)
+        #x = self.fc2(x)
         emb = self.bn1d(x)
-        x = self.fc3(x)
+        x = self.fc2(x)
         
         return x,emb
 
 
         
+
+
