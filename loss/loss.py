@@ -10,25 +10,18 @@ class ArcB(nn.Module):
         self.m = m 
         self.s = s
         self.net = net
+        self.bce = nn.BCEWithLogitsLoss()
 
 
     def forward(self,outputs,classes,emb,ids):
         w = list(self.net.parameters())[-1]
-        w = F.normalize(w)
-        emb = F.normalize(emb)
-        theta = torch.acos(emb.matmul(w.T))
-        l = -classes*torch.log(1/(1+torch.exp(-self.s*torch.cos(theta+self.m)))) -\
-        (1-classes)*torch.log(1-1/(1+torch.exp(-self.s*torch.cos(theta+self.m))))
-        #l = -classes*torch.log(1/(1+torch.exp(-self.s*torch.cos(theta+self.m)))) -\
-        #(1-classes)*torch.log(1/(1+torch.exp(-self.s*torch.cos(theta-self.m))))
-    
-        l = -classes*torch.log(torch.exp(self.s*torch.cos(theta+self.m))/(torch.exp(self.s*torch.cos(theta+self.m))+torch.exp(-self.s*torch.cos(theta+self.m))))-\
-        (1-classes)*torch.log(torch.exp(-self.s*torch.cos(theta-self.m))/(torch.exp(-self.s*torch.cos(theta-self.m))+torch.exp(self.s*torch.cos(theta-self.m))))
-        self.net.linear3.weight = torch.nn.Parameter(w*self.s) 
-        #list(self.net.parameters())[-1] = w*self.s
-        return l.mean()
+        scale = torch.norm(w)*torch.norm(emb,dim=1)
+        scale = scale.unsqueeze(dim=1)
+        theta = torch.acos(emb.matmul(w.T)/scale)
+        outs = classes*scale*torch.cos(theta+self.m) + (1-classes)*scale*torch.cos(theta-self.m)
+        return self.bce(outs,classes)
 
-
+        
 
 class BCEWithLogits(nn.Module):
     def __init__(self):

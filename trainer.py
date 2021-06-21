@@ -190,8 +190,8 @@ def get_dataset(namespace):
         data_partion = 'devel'
         dev_dataset = OuluNPU(root,data_partion,namespace.devel_batch_size,for_train=False)
     elif namespace.dataset == 'replay':
-        root = '/media/meysam/464C8BC94C8BB26B/Replay-Attack/' 
-        #root = '/home/meysam/Desktop/Replay-Attack/'
+        #root = '/media/meysam/464C8BC94C8BB26B/Replay-Attack/' 
+        root = '/home/meysam/Desktop/Replay-Attack/'
         #root = '/content/replayattack/'
         data_partion = 'train'
         train_dataset = ReplayAttack(root,data_partion,namespace.train_batch_size,for_train=True)
