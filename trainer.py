@@ -11,7 +11,7 @@ from dataset.roseyoutu import RoseYoutu
 from dataset.siw import SiW
 from model.alexnet import AlexNet,AlexNetLite
 from model.cnn import CNN
-from loss.loss import BCEWithLogits,ArcB,IdBce
+from loss.loss import BCEWithLogits,ArcB,IdBce,ArcbId
 from torch.utils import data
 import matplotlib.pyplot as plt
 import os
@@ -250,6 +250,10 @@ def get_criterion(namespace,net):
         criterion = ArcB(net,m=0.75,s=0.75)
     elif namespace.criterion == 'IdBce':
         criterion = IdBce(alpha=0.5,M=0.5)
+    elif namespace.criterion == 'arcbid':
+        # alpha,net,M = 0.5,m=0.5)
+        criterion = ArcbId(alpha=0.5,net=net,M=0.5,m=0.5)
+
     return criterion
 
 def main():

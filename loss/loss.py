@@ -21,7 +21,7 @@ class ArcB(nn.Module):
         outs = classes*scale*torch.cos(theta+self.m) + (1-classes)*scale*torch.cos(theta-self.m)
         return self.bce(outs,classes)
 
-        
+
 
 class BCEWithLogits(nn.Module):
     def __init__(self):
@@ -79,4 +79,47 @@ class IdBce(nn.Module):
             l += torch.max(torch.zeros(len(idx2),device=emb.device),self.M-torch.norm((emb[idx2[:,0]]-emb[idx2[:,1]]),1,dim=1)).mean()
         return self.bce(outputs, classes) + self.alpha*l
 
+
+
+
+class ArcbId(nn.Module):
+
+    def __init__(self,alpha,net,M = 0.5,m=0.5):
+        super(ArcbId,self).__init__()
+        self.alpha = alpha
+        self.M = M
+        self.bce = nn.BCEWithLogitsLoss()
+        self.net =  net
+        self.m = m
+        print("ArcB loss with Person ID based loss")
+
+    def forward(self,outputs,classes,emb,ids):
+        w = list(self.net.parameters())[-1]
+        scale = torch.norm(w)*torch.norm(emb,dim=1)
+        scale = scale.unsqueeze(dim=1)
+        theta = torch.acos(emb.matmul(w.T)/scale)
+        outs = classes*scale*torch.cos(theta+self.m) + (1-classes)*scale*torch.cos(theta-self.m)
+        l = 0
+        l+=self.bce(outs,classes)
+
+        idx1 = [] # index for same id but diffrent class label
+        idx2 = [] # index for same class label but diffrent id
+        
+        emb = F.normalize(emb)
+
+        for i,j in itertools.combinations(range(len(ids)), 2):
+            if ids[i]==ids[j] and classes[i]!=classes[j]:
+                idx1.append([i,j])
+            if ids[i]!=ids[j] and classes[i]==classes[j]:
+                idx2.append([i,j])
+
+
+        idx1 = torch.Tensor(idx1).type(torch.long)
+        idx2 = torch.Tensor(idx2).type(torch.long)
+        if len(idx1)>0:
+            l += self.alpha*torch.norm((emb[idx1[:,0]]-emb[idx1[:,1]]),dim=1).mean()
+        if len(idx2)>0:
+            l += self.alpha*torch.max(torch.zeros(len(idx2),device=emb.device),self.M-torch.norm((emb[idx2[:,0]]-emb[idx2[:,1]]),1,dim=1)).mean()
+
+        return l
 
