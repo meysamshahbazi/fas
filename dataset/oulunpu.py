@@ -87,5 +87,8 @@ class OuluNPU(FASDataset):
 if __name__ == "__main__":
     root = '/media/meysam/B42683242682E6A8/OULU-NPU/'
     dataset = OuluNPU(root,'train')
+    dataset.createFaceFiles()
     dataset = OuluNPU(root,'test')
+    dataset.createFaceFiles()
     dataset = OuluNPU(root,'devel')
+    dataset.createFaceFiles()
