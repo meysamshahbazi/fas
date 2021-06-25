@@ -74,8 +74,10 @@ class ReplayAttack(FASDataset):
             y2 = int(l[:-1].split(' ')[4])+y1
             face_locs.append((x1,y1,x2,y2))   
         return face_locs
+
+
     def get_randomed_face_loc(self,vid_idx):
-         '''
+        '''
             this function return a list of face location in form of (x1,y1,x2,y2)
             with randooized index, so frame will be include a backgraound in order to have same img size
         '''

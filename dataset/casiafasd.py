@@ -45,8 +45,83 @@ class CasiaFASD(FASDataset):
 
         with open(self.root+self.data_partion+".json", "w") as outfile:  
             json.dump(my_dict, outfile) 
+    
+    def createFaceFiles(self):
+        with open(self.root+self.data_partion+'.txt', "r") as text_file:
+            lines = text_file.readlines()
 
+        vids = [l[:-1]+'.avi' for l in lines]
 
+        for v in vids:
+            cap = cv2.VideoCapture(self.root+v)
+            frame_cnt = 0
+            my_file = open(self.root+v[:-3]+'face','w+')
+            while cap.isOpened():
+                ret,frame = cap.read()
+                if ret:
+                    faces = detector.detect_faces(frame)
+                    if (len(faces)>0):
+                        x1,y1,w,h = faces[0]['box']
+                        x2 = x1+w
+                        y2 = y1+h
+                    else:
+                        #x1=0
+                        #y1=0
+                        #x2=frame.shape[1]
+                        #y2=frame.shape[0]
+                        print(v)#use preveus detected face!
+                        print(frame_cnt)
+                    l  = str(frame_cnt)+', '+str(x1)+', '+str(y1)+', '+str(x2)+', '+str(y2)+'\n'
+                    my_file.write(l)
+                    frame_cnt = frame_cnt + 1
+                    
+                else:
+                    break
+            cap.release()
+            my_file.close()
+
+    def get_face_loc(self,vid_idx):
+        '''
+            this function return a list of face location in form of (x1,y1,x2,y2)
+        '''
+        face_loc_path = self.datadict[str(vid_idx)]['name'].split('.')[0]
+        face_loc_path = self.root+face_loc_path+'.face'
+        face_locs = []
+        with open(face_loc_path, "r") as text_file:
+            lines = text_file.readlines()
+        for l in lines:
+            x1 = int(l[:-1].split(', ')[1])
+            y1 = int(l[:-1].split(', ')[2])
+            x2 = int(l[:-1].split(', ')[3])
+            y2 = int(l[:-1].split(', ')[4])
+            face_locs.append((x1,y1,x2,y2))   
+        return face_locs
+
+    def get_randomed_face_loc(self,vid_idx):
+        '''
+            this function return a list of face location in form of (x1,y1,x2,y2)
+            with randooized index, so frame will be include a backgraound in order to have same img size
+        '''
+        img_shape = self.datadict[str(vid_idx)]['resolution']
+        face_loc_path = self.datadict[str(vid_idx)]['name'].split('.')[0]
+        face_loc_path = self.root+face_loc_path+'.face'
+        face_locs = []
+        with open(face_loc_path, "r") as text_file:
+            lines = text_file.readlines()
+        for l in lines:
+            x1 = int(l[:-1].split(', ')[1])
+            y1 = int(l[:-1].split(', ')[2])
+            x2 = int(l[:-1].split(', ')[3])
+            y2 = int(l[:-1].split(', ')[4])
+
+            x1 = random.randint(max(0,x2-self.shape[1]),min(x1,img_shape[1]-self.shape[1]))
+            y1 = random.randint(max(0,y2-self.shape[0]),min(y1,img_shape[0]-self.shape[0]))
+            
+            x2 = x1 + self.shape[1]
+            y2 = y1 + self.shape[0]
+            face_locs.append((x1,y1,x2,y2))   
+            
+        return face_locs
 
 if __name__ == "__main__":
     root = '/media/meysam/464C8BC94C8BB26B/Casia-FASD/'
