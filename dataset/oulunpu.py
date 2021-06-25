@@ -7,6 +7,7 @@ import timeit
 import json
 import torch
 import glob
+from mtcnn.mtcnn import MTCNN
 
 
 class OuluNPU(FASDataset):
@@ -52,6 +53,34 @@ class OuluNPU(FASDataset):
 
         with open(self.root+self.data_partion+".json", "w") as outfile:  
             json.dump(my_dict, outfile) 
+
+    def createFaceFiles(self):
+        sub_dir_dict = {'train':'Train_files/','test':'Test_files/','devel':'Dev_files/'} 
+
+        sub_dir = sub_dir_dict[self.data_partion]
+        vids = glob.glob(self.root+sub_dir+'*.avi')
+        detector = MTCNN()
+
+        for index,v in enumerate(vids):
+            cap = cv2.VideoCapture(v)
+            frame_cnt = 0
+            my_file = open(v[:-3]+'face','w+')
+            while cap.isOpened():
+                ret,frame = cap.read()
+                if ret:
+                    faces = detector.detect_faces(frame)
+                    x1,y1,w,h = faces[0]['box']
+                    x2 = x1+w
+                    y2 = y1+h
+                    l  = str(frame_cnt)+', '+str(x1)+', '+str(y1)+', '+str(x2)+', '+str(y2)+'\n'
+                    my_file.write(l)
+                    frame_cnt = frame_cnt + 1
+                    
+                else:
+                    break
+            cap.release()
+            my_file.close()
+
 
 
 
