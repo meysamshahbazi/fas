@@ -2,6 +2,11 @@ import torch
 import torch.cuda as cuda
 import torch.nn as nn
 import torch.nn.functional as F
+from .alexnet import * 
+
+def get_new_model():
+    net = AlexNetLite()
+    print("add new model")
 
 
 class CNN(nn.Module):

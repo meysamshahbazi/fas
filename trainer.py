@@ -1,4 +1,5 @@
 import argparse
+from model.resnext import resnext50_32x4d
 import torch.nn as nn
 import torch
 from protocol.protocol import calcEER
@@ -9,8 +10,9 @@ from dataset.msumfsd import MsuFsd
 from dataset.oulunpu import OuluNPU
 from dataset.roseyoutu import RoseYoutu
 from dataset.siw import SiW
-from model.alexnet import AlexNet,AlexNetLite
-from model.cnn import CNN
+#from model.alexnet import AlexNet,AlexNetLite
+#from model.cnn import CNN
+from model import *
 from loss.loss import BCEWithLogits,ArcB,IdBce,ArcbId
 from torch.utils import data
 import matplotlib.pyplot as plt
@@ -42,7 +44,7 @@ def train(net,criterion,optimizer,train_loader,device,epoch,path):
         #print(classes.shape)
         loss = criterion(outputs, classes,emb,ids) # Calculate the loss
 
-        #print(loss)
+        print(loss)
         iter_loss += loss.item()# Accumulate the loss
         loss.backward()           # Calculate the gradients with help of back propagation
 
@@ -101,12 +103,25 @@ def proc_args():
     siw\n '
     )
     parser.add_argument(
-    '--model',
+    '--backbone',
     type = str,
     required=True,
-    help='the model for train and dev which can be following:\n \
-    alexnet\n \
-    lbpnet\n '
+    help='the backbone for train and dev which can be following:\n \
+    resnext50_32x4d\n \
+    resnext101_32x8d\n '
+    )
+
+    parser.add_argument(
+    '--use_lbp',
+    type = bool,
+    default=True,
+    help='whether or not using lbp befor backbone.\n '
+    )
+    parser.add_argument(
+    '--lbp_ch',
+    type = int,
+    default=8,
+    help='nubmer of channel outputs for lbp operator (default: 8).\n '
     )
     parser.add_argument(
     '--optimizer',
@@ -131,6 +146,19 @@ def proc_args():
     default=10,
     type = int,
     help='nubmers of epoch for runing train and dev (default: 10)'
+    )
+    parser.add_argument(
+    '--emb_size',
+    default=512,
+    type = int,
+    help='size of embeddeing space (default: 512)'
+    )
+    #
+    parser.add_argument(
+    '--input_size',
+    default=224,
+    type = int,
+    help='size of input image to model (default: 224)'
     )
     parser.add_argument(
     '--lr',
@@ -165,54 +193,55 @@ def proc_args():
     type = str,
     help='path (default: 2)'
     )
-    namespace = parser.parse_args()
+    cfg = parser.parse_args()
 
-    return namespace
+    return cfg
 
-def get_dataset(namespace):
+def get_dataset(cfg):
 
-    if namespace.dataset == 'casia':
+    if cfg.dataset == 'casia':
         root = '/media/meysam/464C8BC94C8BB26B/Casia-FASD/'
         data_partion = 'train'
-        train_dataset = CasiaFASD(root,data_partion,namespace.train_batch_size,for_train=True)
+        train_dataset = CasiaFASD(root,data_partion,cfg.train_batch_size,for_train=True)
         data_partion = 'devel'
-        dev_dataset = CasiaFASD(root,data_partion,namespace.devel_batch_size,for_train=False)
-    elif namespace.dataset == 'msu':
+        dev_dataset = CasiaFASD(root,data_partion,cfg.devel_batch_size,for_train=False)
+    elif cfg.dataset == 'msu':
         root = '/media/meysam/464C8BC94C8BB26B/MSU-MFSD/'
         data_partion = 'train'
-        train_dataset = MsuFsd(root,data_partion,namespace.train_batch_size,for_train=True)
+        train_dataset = MsuFsd(root,data_partion,cfg.train_batch_size,for_train=True)
         data_partion = 'devel'
-        dev_dataset = MsuFsd(root,data_partion,namespace.devel_batch_size,for_train=False)
-    elif namespace.dataset == 'oulu':
+        dev_dataset = MsuFsd(root,data_partion,cfg.devel_batch_size,for_train=False)
+    elif cfg.dataset == 'oulu':
         root = '/media/meysam/B42683242682E6A8/OULU-NPU/'
         data_partion = 'train'
-        train_dataset = OuluNPU(root,data_partion,namespace.train_batch_size,for_train=True)
+        train_dataset = OuluNPU(root,data_partion,cfg.train_batch_size,for_train=True)
         data_partion = 'devel'
-        dev_dataset = OuluNPU(root,data_partion,namespace.devel_batch_size,for_train=False)
-    elif namespace.dataset == 'replay':
+        dev_dataset = OuluNPU(root,data_partion,cfg.devel_batch_size,for_train=False)
+    elif cfg.dataset == 'replay':
         #root = '/media/meysam/464C8BC94C8BB26B/Replay-Attack/' 
         root = '/home/meysam/Desktop/Replay-Attack/'
         #root = '/content/replayattack/'
+        shape = (cfg.input_size,cfg.input_size)
         data_partion = 'train'
-        train_dataset = ReplayAttack(root,data_partion,namespace.train_batch_size,for_train=True)
+        train_dataset = ReplayAttack(root,data_partion,cfg.train_batch_size,for_train=True,shape=shape)
         data_partion = 'devel'
-        dev_dataset = ReplayAttack(root,data_partion,namespace.devel_batch_size,for_train=False)
-    elif namespace.dataset == 'rose':
+        dev_dataset = ReplayAttack(root,data_partion,cfg.devel_batch_size,for_train=False,shape=shape)
+    elif cfg.dataset == 'rose':
         root = '/media/meysam/464C8BC94C8BB26B/ROSE-YOUTU/'
         data_partion = 'train'
-        train_dataset = RoseYoutu(root,data_partion,namespace.train_batch_size,for_train=True)
+        train_dataset = RoseYoutu(root,data_partion,cfg.train_batch_size,for_train=True)
         data_partion = 'devel'
-        dev_dataset = RoseYoutu(root,data_partion,namespace.devel_batch_size,for_train=False)
-    elif namespace.dataset == 'siw':
+        dev_dataset = RoseYoutu(root,data_partion,cfg.devel_batch_size,for_train=False)
+    elif cfg.dataset == 'siw':
         root = '/media/meysam/464C8BC94C8BB26B/ROSE-YOUTU/'
         data_partion = 'train'
-        train_dataset = SiW(root,data_partion,namespace.train_batch_size,for_train=True)
+        train_dataset = SiW(root,data_partion,cfg.train_batch_size,for_train=True)
         data_partion = 'devel'
-        dev_dataset = SiW(root,data_partion,namespace.devel_batch_size,for_train=False)
+        dev_dataset = SiW(root,data_partion,cfg.devel_batch_size,for_train=False)
     else:
         print("Error: unsuported datset!!")
     
-    tbs = TrainBatchSampler(train_dataset,namespace.train_batch_size)
+    tbs = TrainBatchSampler(train_dataset,cfg.train_batch_size)
     train_loader = data.DataLoader(dataset=train_dataset, batch_size= 1, 
                                shuffle= False, sampler = None, batch_sampler = tbs,
                                num_workers= 0, collate_fn= None, pin_memory = False, 
@@ -220,7 +249,7 @@ def get_dataset(namespace):
                                multiprocessing_context=None, generator=None, prefetch_factor = 2,
                                persistent_workers = False)
     
-    dev_loader = data.DataLoader(dataset=dev_dataset, batch_size= namespace.devel_batch_size, 
+    dev_loader = data.DataLoader(dataset=dev_dataset, batch_size= cfg.devel_batch_size, 
                                shuffle= False, sampler = None, batch_sampler = None,
                                num_workers= 0, collate_fn= None, pin_memory = False, 
                                drop_last = False, timeout= 0, worker_init_fn = None,
@@ -230,68 +259,73 @@ def get_dataset(namespace):
     return train_loader,dev_loader
 
 
-def get_net(namespace):
-    if  namespace.model == 'alexnet':
-        net = AlexNetLite()
-    elif  namespace.model == 'cnn':
-        net = CNN()
-    #TODO: complete this
-    return net
-def get_optimizer(net,namespace):
-    if namespace.optimizer == 'adam':
-        optimizer = torch.optim.Adam(net.parameters(),lr=namespace.lr)
+# def get_net(cfg):
+#     if  cfg.backbone == 'resnext50_32x4d':
+#         input_size = (cfg.input_size,cfg.input_size)
+#         backbone = resnext50_32x4d(input_size,cfg.emb_size,)
+#         net = AlexNetLite()
+#     elif  cfg.model == 'cnn':
+#         net = CNN()
+#     #TODO: complete this
+#     net = Model(cfg.input_size,backbone,lbp_ch=cfg.lbp_ch,use_lbp=cfg.use_lbp,emb_siz=cfg.emb_size)
+#     return net
+def get_optimizer(net,cfg):
+    if cfg.optimizer == 'adam':
+        optimizer = torch.optim.Adam(net.parameters(),lr=cfg.lr)
 
     return optimizer
 
-def get_criterion(namespace,net):
-    if namespace.criterion == 'BCEWithLogits':
+def get_criterion(cfg,net):
+    if cfg.criterion == 'BCEWithLogits':
         criterion = BCEWithLogits()
-    elif namespace.criterion == 'ArcB':
+    elif cfg.criterion == 'ArcB':
         criterion = ArcB(net,m=0.75,s=0.75)
-    elif namespace.criterion == 'IdBce':
+    elif cfg.criterion == 'IdBce':
         criterion = IdBce(alpha=0.5,M=0.5)
-    elif namespace.criterion == 'arcbid':
+    elif cfg.criterion == 'arcbid':
         # alpha,net,M = 0.5,m=0.5)
         criterion = ArcbId(alpha=0.5,net=net,M=0.5,m=0.5)
 
     return criterion
 
 def main():
-    namespace = proc_args()
+    
+    cfg = proc_args()
 
     device = torch.device("cuda:0" if torch.cuda.is_available() else "cpu")
     print(device)
 
-    train_loader,dev_loader = get_dataset(namespace)
+    train_loader,dev_loader = get_dataset(cfg)
 
-    net = get_net(namespace) 
+    #net = get_net(cfg) 
+    net = Model(cfg)
     net.to(device)
 
     # Our loss function
-    criterion = get_criterion(namespace,net)
+    criterion = get_criterion(cfg,net)
     # Our optimizer
     
 
-    optimizer = get_optimizer(net,namespace)
+    optimizer = get_optimizer(net,cfg)
 
-    num_epochs = namespace.num_epochs
-    path = namespace.dataset + '_' + namespace.model + '_' + namespace.criterion + '_' + namespace.optimizer
+    num_epochs = cfg.num_epochs
+    path = cfg.dataset + '_' + cfg.backbone + '_' + cfg.criterion + '_' + cfg.optimizer#TODO: complete this with lbp
     os.mkdir('outputs/'+path)
     os.mkdir('outputs/'+path+'/eer_figs')
     os.mkdir('outputs/'+path+'/checkpoints')
 
     log_file = open('outputs/'+path+'/logs.txt','w+')
     log_file.writelines('device: '+str(device)+'\n')
-    log_file.writelines('lr: '+str(namespace.lr)+'\n')
-    log_file.writelines('dataset: '+str(namespace.dataset)+'\n') # 
-    log_file.writelines('model: '+str(namespace.model)+'\n')
-    log_file.writelines('optimizer: '+str(namespace.optimizer)+'\n')
-    log_file.writelines('criterion: '+str(namespace.criterion)+'\n')
-    log_file.writelines('num_epochs: '+str(namespace.num_epochs)+'\n')
-    log_file.writelines('train_batch_size: '+str(namespace.train_batch_size)+'\n')
-    log_file.writelines('devel_batch_size: '+str(namespace.devel_batch_size)+'\n')
-    log_file.writelines('criterion: '+str(namespace.criterion)+'\n')
-    log_file.writelines('criterion: '+str(namespace.criterion)+'\n')
+    log_file.writelines('lr: '+str(cfg.lr)+'\n')
+    log_file.writelines('dataset: '+str(cfg.dataset)+'\n') # 
+    log_file.writelines('backbone: '+str(cfg.backbone)+'\n')
+    log_file.writelines('optimizer: '+str(cfg.optimizer)+'\n')
+    log_file.writelines('criterion: '+str(cfg.criterion)+'\n')
+    log_file.writelines('num_epochs: '+str(cfg.num_epochs)+'\n')
+    log_file.writelines('train_batch_size: '+str(cfg.train_batch_size)+'\n')
+    log_file.writelines('devel_batch_size: '+str(cfg.devel_batch_size)+'\n')
+    log_file.writelines('criterion: '+str(cfg.criterion)+'\n')
+    log_file.writelines('criterion: '+str(cfg.criterion)+'\n')
     log_file.writelines('----------------------------------------------------\n')
     for epoch in range(num_epochs):
         start = timeit.default_timer()
