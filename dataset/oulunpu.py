@@ -7,8 +7,9 @@ import timeit
 import json
 import torch
 import glob
-from mtcnn.mtcnn import MTCNN
-
+#from mtcnn.mtcnn import MTCNN
+from torch_mtcnn import detect_faces
+from PIL import Image
 
 class OuluNPU(FASDataset):
     def crateJsonSummery(self):
@@ -59,7 +60,6 @@ class OuluNPU(FASDataset):
 
         sub_dir = sub_dir_dict[self.data_partion]
         vids = glob.glob(self.root+sub_dir+'*.avi')
-        detector = MTCNN()
 
         for index,v in enumerate(vids):
             cap = cv2.VideoCapture(v)
@@ -68,16 +68,21 @@ class OuluNPU(FASDataset):
             while cap.isOpened():
                 ret,frame = cap.read()
                 if ret:
-                    faces = detector.detect_faces(frame)
-                    if (len(faces)>0):
-                        x1,y1,w,h = faces[0]['box']
-                        x2 = x1+w
-                        y2 = y1+h
+                    pil_img = Image.fromarray(cv2.cvtColor(frame, cv2.COLOR_BGR2RGB))
+                    faces, _ = detect_faces(pil_img)
+
+                    if (len(faces)>0): #TODO: handle not detecting first frame
+                        faces = list(map(int, faces[0]))
+                        x1 = faces[0]
+                        y1 = faces[1]
+                        x2 = faces[2]
+                        y2 = faces[3]
                     else:
-                        #x1=0
-                        #y1=0
-                        #x2=frame.shape[1]
-                        #y2=frame.shape[0]
+                        if frame_cnt==0:
+                            x1=0
+                            y1=0
+                            x2=frame.shape[1]-1
+                            y2=frame.shape[0]-1
                         print(v)#use preveus detected face!
                         print(frame_cnt)
                     l  = str(frame_cnt)+', '+str(x1)+', '+str(y1)+', '+str(x2)+', '+str(y2)+'\n'
