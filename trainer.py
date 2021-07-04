@@ -19,6 +19,7 @@ import matplotlib.pyplot as plt
 import os
 import timeit
 import numpy as np
+from tqdm import tqdm
 
 
 
@@ -30,7 +31,7 @@ def train(net,criterion,optimizer,train_loader,device,epoch,path):
     
     net.train()                   # Put the network into training mode
     optimizer.zero_grad()     # Clear off the gradients from any past operation
-    for i, (items, classes,ids) in enumerate(train_loader):
+    for i, (items, classes,ids) in enumerate(tqdm(train_loader)):
         # If we have GPU, shift the data to GPU
 
         items = items.to(device)
@@ -44,7 +45,7 @@ def train(net,criterion,optimizer,train_loader,device,epoch,path):
         #print(classes.shape)
         loss = criterion(outputs, classes,emb,ids) # Calculate the loss
 
-        print(loss)
+        #print(loss)
         iter_loss += loss.item()# Accumulate the loss
         loss.backward()           # Calculate the gradients with help of back propagation
 
@@ -66,7 +67,7 @@ def dev(net,criterion,dev_loader,device,epoch,path):
     pred = []
     net.eval() # Put the network into evaluate mode
 
-    for i, (items, classes,ids) in enumerate(dev_loader):
+    for i, (items, classes,ids) in enumerate(tqdm(dev_loader)):
         torch.cuda.empty_cache()
         # Convert torch tensor to Variable
         items = items.to(device)
