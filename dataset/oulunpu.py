@@ -11,6 +11,7 @@ import glob
 from torch_mtcnn import detect_faces
 from PIL import Image
 
+
 class OuluNPU(FASDataset):
     def crateJsonSummery(self):
         sub_dir_dict = {'train':'Train_files/','test':'Test_files/','devel':'Dev_files/'} 
@@ -62,37 +63,38 @@ class OuluNPU(FASDataset):
         vids = glob.glob(self.root+sub_dir+'*.avi')
 
         for index,v in enumerate(vids):
-            cap = cv2.VideoCapture(v)
-            frame_cnt = 0
-            my_file = open(v[:-3]+'face','w+')
-            while cap.isOpened():
-                ret,frame = cap.read()
-                if ret:
-                    pil_img = Image.fromarray(cv2.cvtColor(frame, cv2.COLOR_BGR2RGB))
-                    faces, _ = detect_faces(pil_img)
+            if not os.path.isfile(v[:-3]+'face'):
+                cap = cv2.VideoCapture(v)
+                frame_cnt = 0
+                my_file = open(v[:-3]+'face','w+')
+                while cap.isOpened():
+                    ret,frame = cap.read()
+                    if ret:
+                        pil_img = Image.fromarray(cv2.cvtColor(frame, cv2.COLOR_BGR2RGB))
+                        faces, _ = detect_faces(pil_img)
 
-                    if (len(faces)>0): #TODO: handle not detecting first frame
-                        faces = list(map(int, faces[0]))
-                        x1 = faces[0]
-                        y1 = faces[1]
-                        x2 = faces[2]
-                        y2 = faces[3]
+                        if (len(faces)>0): #TODO: handle not detecting first frame
+                            faces = list(map(int, faces[0]))
+                            x1 = faces[0]
+                            y1 = faces[1]
+                            x2 = faces[2]
+                            y2 = faces[3]
+                        else:
+                            if frame_cnt==0:
+                                x1=0
+                                y1=0
+                                x2=frame.shape[1]-1
+                                y2=frame.shape[0]-1
+                            print(v)#use preveus detected face!
+                            print(frame_cnt)
+                        l  = str(frame_cnt)+', '+str(x1)+', '+str(y1)+', '+str(x2)+', '+str(y2)+'\n'
+                        my_file.write(l)
+                        frame_cnt = frame_cnt + 1
+                        
                     else:
-                        if frame_cnt==0:
-                            x1=0
-                            y1=0
-                            x2=frame.shape[1]-1
-                            y2=frame.shape[0]-1
-                        print(v)#use preveus detected face!
-                        print(frame_cnt)
-                    l  = str(frame_cnt)+', '+str(x1)+', '+str(y1)+', '+str(x2)+', '+str(y2)+'\n'
-                    my_file.write(l)
-                    frame_cnt = frame_cnt + 1
-                    
-                else:
-                    break
-            cap.release()
-            my_file.close()
+                        break
+                cap.release()
+                my_file.close()
 
     def get_face_loc(self,vid_idx):
         '''
