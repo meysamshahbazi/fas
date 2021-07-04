@@ -8,23 +8,37 @@ from dataset.msumfsd import MsuFsd
 from dataset.oulunpu import OuluNPU
 from dataset.roseyoutu import RoseYoutu
 from dataset.siw import SiW
-from model.alexnet import AlexNet,AlexNetLite
 from model.cnn import CNN
-from loss.loss import BCEWithLogits,ArcB,IdBce,ArcbId
 from torch.utils import data
 import matplotlib.pyplot as plt
 import os
-import timeit
-import numpy as np
 
 
 
-root = '/media/meysam/B42683242682E6A8/OULU-NPU/'
+
+#root = '/media/meysam/B42683242682E6A8/OULU-NPU/'
 #dataset = OuluNPU(root,'train')
 #dataset.createFaceFiles()
 #dataset = OuluNPU(root,'test')
 #dataset.createFaceFiles()
-dataset = OuluNPU(root,'devel')
+#dataset = OuluNPU(root,'devel')
+#dataset.createFaceFiles()
+
+root = '/media/meysam/464C8BC94C8BB26B/Casia-FASD/'
+dataset = CasiaFASD(root,'train',4)
 dataset.createFaceFiles()
+dataset = CasiaFASD(root,'test',4)
+dataset.createFaceFiles()
+dataset = CasiaFASD(root,'devel',4)
+dataset.createFaceFiles()
+
+root = '/media/meysam/464C8BC94C8BB26B/ROSE-YOUTU/'
+dataset = RoseYoutu(root,'train')
+dataset.createFaceFiles()
+dataset = RoseYoutu(root,'test')
+dataset.createFaceFiles()
+dataset = RoseYoutu(root,'devel')
+dataset.createFaceFiles()
+
 
 

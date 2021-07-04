@@ -6,6 +6,10 @@ import os
 import timeit
 import json
 import torch
+from torch_mtcnn import detect_faces
+from tqdm import tqdm
+from PIL import Image
+
 
 
 class CasiaFASD(FASDataset):
@@ -52,33 +56,39 @@ class CasiaFASD(FASDataset):
 
         vids = [l[:-1]+'.avi' for l in lines]
 
-        for v in vids:
-            cap = cv2.VideoCapture(self.root+v)
-            frame_cnt = 0
-            my_file = open(self.root+v[:-3]+'face','w+')
-            while cap.isOpened():
-                ret,frame = cap.read()
-                if ret:
-                    faces = detector.detect_faces(frame)
-                    if (len(faces)>0):
-                        x1,y1,w,h = faces[0]['box']
-                        x2 = x1+w
-                        y2 = y1+h
+        for index,v in enumerate(tqdm(vids)):
+            if not os.path.isfile(v[:-3]+'face'):
+                cap = cv2.VideoCapture(v)
+                frame_cnt = 0
+                my_file = open(v[:-3]+'face','w+')
+                while cap.isOpened():
+                    ret,frame = cap.read()
+                    if ret:
+                        pil_img = Image.fromarray(cv2.cvtColor(frame, cv2.COLOR_BGR2RGB))
+                        faces, _ = detect_faces(pil_img)
+
+                        if (len(faces)>0): 
+                            faces = list(map(int, faces[0]))
+                            x1 = faces[0]
+                            y1 = faces[1]
+                            x2 = faces[2]
+                            y2 = faces[3]
+                        else:
+                            if frame_cnt==0:
+                                x1=0
+                                y1=0
+                                x2=frame.shape[1]-1
+                                y2=frame.shape[0]-1
+                            print(v)#use preveus detected face!
+                            print(frame_cnt)
+                        l  = str(frame_cnt)+', '+str(x1)+', '+str(y1)+', '+str(x2)+', '+str(y2)+'\n'
+                        my_file.write(l)
+                        frame_cnt = frame_cnt + 1
+                        
                     else:
-                        #x1=0
-                        #y1=0
-                        #x2=frame.shape[1]
-                        #y2=frame.shape[0]
-                        print(v)#use preveus detected face!
-                        print(frame_cnt)
-                    l  = str(frame_cnt)+', '+str(x1)+', '+str(y1)+', '+str(x2)+', '+str(y2)+'\n'
-                    my_file.write(l)
-                    frame_cnt = frame_cnt + 1
-                    
-                else:
-                    break
-            cap.release()
-            my_file.close()
+                        break
+                cap.release()
+                my_file.close()
 
     def get_face_loc(self,vid_idx):
         '''
