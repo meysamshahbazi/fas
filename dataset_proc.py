@@ -24,13 +24,13 @@ import os
 #dataset = OuluNPU(root,'devel')
 #dataset.createFaceFiles()
 
-root = '/media/meysam/464C8BC94C8BB26B/Casia-FASD/'
-dataset = CasiaFASD(root,'train',4)
-dataset.createFaceFiles()
-dataset = CasiaFASD(root,'test',4)
-dataset.createFaceFiles()
-dataset = CasiaFASD(root,'devel',4)
-dataset.createFaceFiles()
+#root = '/media/meysam/464C8BC94C8BB26B/Casia-FASD/'
+#dataset = CasiaFASD(root,'train',4)
+#dataset.createFaceFiles()
+#dataset = CasiaFASD(root,'test',4)
+#dataset.createFaceFiles()
+#dataset = CasiaFASD(root,'devel',4)
+#dataset.createFaceFiles()
 
 root = '/media/meysam/464C8BC94C8BB26B/ROSE-YOUTU/'
 dataset = RoseYoutu(root,'train')

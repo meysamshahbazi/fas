@@ -208,6 +208,7 @@ def get_dataset(cfg):
         dev_dataset = CasiaFASD(root,data_partion,cfg.devel_batch_size,for_train=False)
     elif cfg.dataset == 'msu':
         root = '/media/meysam/464C8BC94C8BB26B/MSU-MFSD/'
+        root = '/home/meysam/Desktop/MSU-MFSD/MSU-MFSD-Publish/'
         data_partion = 'train'
         train_dataset = MsuFsd(root,data_partion,cfg.train_batch_size,for_train=True)
         data_partion = 'devel'

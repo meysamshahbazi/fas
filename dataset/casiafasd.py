@@ -54,7 +54,7 @@ class CasiaFASD(FASDataset):
         with open(self.root+self.data_partion+'.txt', "r") as text_file:
             lines = text_file.readlines()
 
-        vids = [l[:-1]+'.avi' for l in lines]
+        vids = [self.root+l[:-1]+'.avi' for l in lines]
 
         for index,v in enumerate(tqdm(vids)):
             if not os.path.isfile(v[:-3]+'face'):

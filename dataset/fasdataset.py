@@ -38,15 +38,18 @@ class FASDataset(data.Dataset):
                 if int(len(self.opened_vid)) == self.batch_size:
                     self.opened_vid = {}
                 self.opened_vid[self.vid_idx] = []
+                rotate_func = self.get_rotate_func(self.datadict[str(self.vid_idx)]['name'])
                 cap = cv2.VideoCapture(self.root+self.datadict[str(self.vid_idx)]['name'] )
                 face_locs = self.get_randomed_face_loc(self.vid_idx)
                 face_locs_idx = 0
                 while cap.isOpened():
                     ret,frame = cap.read()
                     if ret:
-                        x1,y1,x2,y2 = face_locs[face_locs_idx]
+                        frame = rotate_func(frame)
+                        x1,y1,x2,y2 = face_locs[face_locs_idx % len(face_locs)] # this is becuse some dataset have diffrent frame cnt and lines of .face file!!
                         face_locs_idx +=1
                         frame = frame[y1:y2,x1:x2,:]
+                        frame = cv2.resize(frame, dsize=self.shape, interpolation=cv2.INTER_CUBIC)
                         self.opened_vid[self.vid_idx].append(frame)
                     else:
                         break
@@ -62,15 +65,18 @@ class FASDataset(data.Dataset):
                     self.vid_idx += 1
                     
                 self.vid_list = []
+                rotate_func = self.get_rotate_func(self.datadict[str(self.vid_idx)]['name'])
                 cap = cv2.VideoCapture(self.root+self.datadict[str(self.vid_idx)]['name'] )
                 face_locs = self.get_randomed_face_loc(self.vid_idx)
                 face_locs_idx = 0
                 while cap.isOpened():
                     ret,frame = cap.read()
                     if ret:
+                        frame = rotate_func(frame)
                         x1,y1,x2,y2 = face_locs[face_locs_idx]
                         face_locs_idx +=1
                         frame = frame[y1:y2,x1:x2,:]
+                        frame = cv2.resize(frame, dsize=self.shape, interpolation=cv2.INTER_CUBIC)
                         self.vid_list.append(frame)
                     else:
                         break
@@ -93,6 +99,8 @@ class FASDataset(data.Dataset):
 
     def clear_cache(self):#this must be called after end of each epoch in training
         self.opened_vid = {}
+    def get_rotate_func(self,name):
+        return lambda x: x
 
     def crateJsonSummery(self):
         raise NotImplementedError("Subclass must implement abstract method")
