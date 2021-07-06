@@ -83,28 +83,49 @@ class ReplayAttack(FASDataset):
             with randooized index, so frame will be include a backgraound in order to have same img size
         '''
         img_shape = self.datadict[str(vid_idx)]['resolution']
-        face_loc_path = self.datadict[str(vid_idx)]['name'].split('.')[0]
-        face_loc_path = self.root+'replayattack-face-locations-v2/face-locations/'+face_loc_path+'.face'
-        face_locs = []
-        with open(face_loc_path, "r") as text_file:
-            lines = text_file.readlines()
-        for l in lines:
-            x1 = int(l[:-1].split(' ')[1])
-            y1 = int(l[:-1].split(' ')[2])
-            x2 = int(l[:-1].split(' ')[3])+x1
-            y2 = int(l[:-1].split(' ')[4])+y1
+        face_locs = self.get_face_loc(vid_idx)
+        face_locs_random = []
+        for x1,y1,x2,y2 in face_locs:
+            if (x1,x2,y1,y2)==(0,0,0,0):
+                # in this dataset some of frame didnt detect face and have 0,0,0,0
+                y2 = img_shape[0]-1
+                x2 = img_shape[1]-1
+            else:
+                x1,y1,x2,y2 = self.random_crop(x1,y1,x2,y2,img_shape)
 
-            x1,y1,x2,y2 = self.random_crop(x1,y1,x2,y2,img_shape)
-            # scale = max(math.ceil((x2-x1)/self.shape[1]), math.ceil((y2-y1)/self.shape[0]))
+            face_locs_random.append((x1,y1,x2,y2))  
 
-            # x1 = random.randint(max(0,x2-scale*self.shape[1]),min(x1,img_shape[1]-scale*self.shape[1]))
-            # y1 = random.randint(max(0,y2-scale*self.shape[0]),min(y1,img_shape[0]-scale*self.shape[0]))
+
+        # face_loc_path = self.datadict[str(vid_idx)]['name'].split('.')[0]
+        # face_loc_path = self.root+'replayattack-face-locations-v2/face-locations/'+face_loc_path+'.face'
+        # face_locs = []
+        # with open(face_loc_path, "r") as text_file:
+        #     lines = text_file.readlines()
+
+                    
+        # for i,l in enumerate(lines):
+        #     x1 = int(l[:-1].split(' ')[1])
+        #     y1 = int(l[:-1].split(' ')[2])
+        #     x2 = int(l[:-1].split(' ')[3])+x1
+        #     y2 = int(l[:-1].split(' ')[4])+y1
+        #     if (x1,x2,y1,y2)==(0,0,0,0):
+        #         if i==0:
+        #             y2 = img_shape[0]-1
+        #             x2 = img_shape[1]-1
+        #         else:
+        #             ll = lines[i-1]
+                
+        #     x1,y1,x2,y2 = self.random_crop(x1,y1,x2,y2,img_shape)
+        #     # scale = max(math.ceil((x2-x1)/self.shape[1]), math.ceil((y2-y1)/self.shape[0]))
+
+        #     # x1 = random.randint(max(0,x2-scale*self.shape[1]),min(x1,img_shape[1]-scale*self.shape[1]))
+        #     # y1 = random.randint(max(0,y2-scale*self.shape[0]),min(y1,img_shape[0]-scale*self.shape[0]))
             
-            # x2 = x1 + scale*self.shape[1]
-            # y2 = y1 + scale*self.shape[0]
-            face_locs.append((x1,y1,x2,y2))   
+        #     # x2 = x1 + scale*self.shape[1]
+        #     # y2 = y1 + scale*self.shape[0]
+        #     face_locs.append((x1,y1,x2,y2))   
             
-        return face_locs
+        return face_locs_random
 
 
 
