@@ -6,6 +6,7 @@ import os
 import timeit
 import json
 import torch
+from tqdm import tqdm
 
 class SiW(FASDataset):
 
@@ -19,7 +20,7 @@ class SiW(FASDataset):
             lines = text_file.readlines()
 
         my_dict = {}
-        for index,l in enumerate(lines):
+        for index,l in enumerate(tqdm(lines)):
             my_dict[index] = {} 
             my_dict[index]['name'] = l[:-1]+'.mov'
             my_dict[index]['person_id'] = int(l[:-1].split('/')[-1].split('-')[0])
@@ -53,8 +54,8 @@ class SiW(FASDataset):
                 my_dict[index]['nb_frame_total'] = frame_cnt + my_dict[index-1]['nb_frame_total'] 
             my_dict[index]['resolution'] = resolution
 
-            print(my_dict[index])
-            print('-------------------------------------')
+            #print(my_dict[index])
+            #print('-------------------------------------')
 
         with open(self.root+self.data_partion+".json", "w") as outfile:  
             json.dump(my_dict, outfile) 
