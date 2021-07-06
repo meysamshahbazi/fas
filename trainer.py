@@ -10,8 +10,6 @@ from dataset.msumfsd import MsuFsd
 from dataset.oulunpu import OuluNPU
 from dataset.roseyoutu import RoseYoutu
 from dataset.siw import SiW
-#from model.alexnet import AlexNet,AlexNetLite
-#from model.cnn import CNN
 from model import *
 from loss.loss import BCEWithLogits,ArcB,IdBce,ArcbId
 from torch.utils import data
