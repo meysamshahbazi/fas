@@ -33,12 +33,18 @@ import os
 #dataset.createFaceFiles()
 
 root = '/media/meysam/464C8BC94C8BB26B/ROSE-YOUTU/'
-dataset = RoseYoutu(root,'train')
-dataset.createFaceFiles()
-dataset = RoseYoutu(root,'test')
-dataset.createFaceFiles()
+#dataset = RoseYoutu(root,'train')
+#dataset.createFaceFiles()
+
 dataset = RoseYoutu(root,'devel')
 dataset.createFaceFiles()
 
+dataset = RoseYoutu(root,'test')
+dataset.createFaceFiles()
+
+root = '/media/meysam/B42683242682E6A8/OULU-NPU/'
+
+dataset = OuluNPU(root,'test')
+dataset.createFaceFiles()
 
 

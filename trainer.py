@@ -206,7 +206,7 @@ def get_dataset(cfg):
         dev_dataset = CasiaFASD(root,data_partion,cfg.devel_batch_size,for_train=False)
     elif cfg.dataset == 'msu':
         root = '/media/meysam/464C8BC94C8BB26B/MSU-MFSD/'
-        root = '/home/meysam/Desktop/MSU-MFSD/MSU-MFSD-Publish/'
+        #root = '/home/meysam/Desktop/MSU-MFSD/MSU-MFSD-Publish/'
         data_partion = 'train'
         train_dataset = MsuFsd(root,data_partion,cfg.train_batch_size,for_train=True)
         data_partion = 'devel'
@@ -218,8 +218,8 @@ def get_dataset(cfg):
         data_partion = 'devel'
         dev_dataset = OuluNPU(root,data_partion,cfg.devel_batch_size,for_train=False)
     elif cfg.dataset == 'replay':
-        #root = '/media/meysam/464C8BC94C8BB26B/Replay-Attack/' 
-        root = '/home/meysam/Desktop/Replay-Attack/'
+        root = '/media/meysam/464C8BC94C8BB26B/Replay-Attack/' 
+        #root = '/home/meysam/Desktop/Replay-Attack/'
         #root = '/content/replayattack/'
         shape = (cfg.input_size,cfg.input_size)
         data_partion = 'train'
@@ -233,7 +233,7 @@ def get_dataset(cfg):
         data_partion = 'devel'
         dev_dataset = RoseYoutu(root,data_partion,cfg.devel_batch_size,for_train=False)
     elif cfg.dataset == 'siw':
-        root = '/media/meysam/464C8BC94C8BB26B/ROSE-YOUTU/'
+        root = '/media/meysam/901292F51292E010/SiW/SiW_release/'
         data_partion = 'train'
         train_dataset = SiW(root,data_partion,cfg.train_batch_size,for_train=True)
         data_partion = 'devel'
