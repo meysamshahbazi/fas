@@ -106,7 +106,7 @@ class ResNet(nn.Module):
             self.fc =nn.Linear(2048 * 4 * 4, emb_size)
         else:
             self.fc = nn.Linear(2048 * 7 * 7, emb_size)
-        self.bn_o2 = nn.BatchNorm1d(512)
+        self.bn_o2 = nn.BatchNorm1d(emb_size)
 
         for m in self.modules():
             if isinstance(m, nn.Conv2d):
