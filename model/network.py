@@ -77,7 +77,6 @@ class Model(nn.Module):
         self.lbp = Identity()
         nb_ch = 3
 
-      
       self.backbone = get_backbone(cfg,nb_ch)
       self.head = nn.Linear(self.emb_size,1,bias = False)
 

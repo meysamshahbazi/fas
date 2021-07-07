@@ -1,4 +1,5 @@
 from torch.utils import data
+from torchvision import transforms
 import cv2
 import random
 import os
@@ -27,6 +28,11 @@ class FASDataset(data.Dataset):
           self.crateJsonSummery()
         with open(self.root+self.data_partion+'.json', 'r') as openfile:
             self.datadict = json.load(openfile)  
+        self.transform = transforms.Compose([
+                            transforms.ToTensor(),
+                            transforms.Normalize(mean=[0.485, 0.456, 0.406],
+                                                std=[0.229, 0.224, 0.225])
+                            ])
 
 
 
@@ -91,8 +97,11 @@ class FASDataset(data.Dataset):
             
             x = self.vid_list[frame_idx]
           
-        x = x.transpose(2,1,0)
-        x = torch.FloatTensor(x)
+        x = self.transform(x)
+        #x = torch.transpose(x,0,2)
+        #x = x.transpose(2,1,0)
+        #x = torch.FloatTensor(x)
+        
         y = int(self.datadict[str(self.vid_idx)]['real_or_spoof'])
         y = torch.FloatTensor([y])
         id = int(self.datadict[str(self.vid_idx)]['person_id'])

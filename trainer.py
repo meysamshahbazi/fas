@@ -31,22 +31,19 @@ def train(net,criterion,optimizer,train_loader,device,epoch,path):
     optimizer.zero_grad()     # Clear off the gradients from any past operation
     for i, (items, classes,ids) in enumerate(tqdm(train_loader)):
         # If we have GPU, shift the data to GPU
-
         items = items.to(device)
         classes = classes.to(device)
         ids = ids.to(device)
+
         optimizer.zero_grad()     # Clear off the gradients from any past operation
-        #print(items.shape)
+
         outputs,emb = net(items)      # Do the forward pass
-        #print("emb shape: "+str(emb.shape))
-        #print(outputs.shape)
-        #print(classes.shape)
+
         loss = criterion(outputs, classes,emb,ids) # Calculate the loss
 
-        #print(loss)
-        iter_loss += loss.item()# Accumulate the loss
-        loss.backward()           # Calculate the gradients with help of back propagation
+        iter_loss += loss.item() # Accumulate the loss
 
+        loss.backward()           # Calculate the gradients with help of back propagation
 
         optimizer.step()          # Ask the optimizer to adjust the parameters based on the gradients
 
@@ -78,7 +75,6 @@ def dev(net,criterion,dev_loader,device,epoch,path):
         lbl += classes.cpu().flatten().tolist()    
         pred += outputs.detach().cpu().flatten().tolist()
 
-        
         iterations += 1
     # Record the validation loss
     dev_loss.append(loss/iterations)
@@ -112,8 +108,8 @@ def proc_args():
 
     parser.add_argument(
     '--use_lbp',
-    type = bool,
-    default=True,
+    type = int,
+    default=1,
     help='whether or not using lbp befor backbone.\n '
     )
     parser.add_argument(
@@ -259,16 +255,7 @@ def get_dataset(cfg):
     return train_loader,dev_loader
 
 
-# def get_net(cfg):
-#     if  cfg.backbone == 'resnext50_32x4d':
-#         input_size = (cfg.input_size,cfg.input_size)
-#         backbone = resnext50_32x4d(input_size,cfg.emb_size,)
-#         net = AlexNetLite()
-#     elif  cfg.model == 'cnn':
-#         net = CNN()
-#     #TODO: complete this
-#     net = Model(cfg.input_size,backbone,lbp_ch=cfg.lbp_ch,use_lbp=cfg.use_lbp,emb_siz=cfg.emb_size)
-#     return net
+
 def get_optimizer(net,cfg):
     if cfg.optimizer == 'adam':
         optimizer = torch.optim.Adam(net.parameters(),lr=cfg.lr)
@@ -309,7 +296,7 @@ def main():
     optimizer = get_optimizer(net,cfg)
 
     num_epochs = cfg.num_epochs
-    path = cfg.dataset + '_' + cfg.backbone + '_' + cfg.criterion + '_' + cfg.optimizer#TODO: complete this with lbp
+    path = cfg.dataset + '_' + cfg.backbone + '_' + cfg.criterion + '_' + cfg.optimizer+'_lbp_'+str(cfg.use_lbp)
     os.mkdir('outputs/'+path)
     os.mkdir('outputs/'+path+'/eer_figs')
     os.mkdir('outputs/'+path+'/checkpoints')
@@ -322,10 +309,11 @@ def main():
     log_file.writelines('optimizer: '+str(cfg.optimizer)+'\n')
     log_file.writelines('criterion: '+str(cfg.criterion)+'\n')
     log_file.writelines('num_epochs: '+str(cfg.num_epochs)+'\n')
+    log_file.writelines('use_lbp: '+str(cfg.use_lbp)+'\n')
     log_file.writelines('train_batch_size: '+str(cfg.train_batch_size)+'\n')
     log_file.writelines('devel_batch_size: '+str(cfg.devel_batch_size)+'\n')
-    log_file.writelines('criterion: '+str(cfg.criterion)+'\n')
-    log_file.writelines('criterion: '+str(cfg.criterion)+'\n')
+    log_file.writelines('emb_size: '+str(cfg.emb_size)+'\n')
+    log_file.writelines('input_size: '+str(cfg.input_size)+'\n')
     log_file.writelines('----------------------------------------------------\n')
     for epoch in range(num_epochs):
         start = timeit.default_timer()

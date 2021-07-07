@@ -32,19 +32,25 @@ import os
 #dataset = CasiaFASD(root,'devel',4)
 #dataset.createFaceFiles()
 
-root = '/media/meysam/464C8BC94C8BB26B/ROSE-YOUTU/'
 #dataset = RoseYoutu(root,'train')
 #dataset.createFaceFiles()
 
+
+root = '/media/meysam/464C8BC94C8BB26B/ROSE-YOUTU/'
 dataset = RoseYoutu(root,'devel')
 dataset.createFaceFiles()
 
+root = '/media/meysam/901292F51292E010/SiW/SiW_release/'
+dataset = SiW(root,'train')
+dataset = SiW(root,'devel')
+
+root = '/media/meysam/464C8BC94C8BB26B/ROSE-YOUTU/'
 dataset = RoseYoutu(root,'test')
 dataset.createFaceFiles()
 
 root = '/media/meysam/B42683242682E6A8/OULU-NPU/'
-
 dataset = OuluNPU(root,'test')
 dataset.createFaceFiles()
 
-
+root = '/media/meysam/901292F51292E010/SiW/SiW_release/'
+dataset = SiW(root,'test')
