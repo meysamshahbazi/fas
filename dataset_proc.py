@@ -36,13 +36,13 @@ import os
 #dataset.createFaceFiles()
 
 
-root = '/media/meysam/464C8BC94C8BB26B/ROSE-YOUTU/'
-dataset = RoseYoutu(root,'devel')
-dataset.createFaceFiles()
+# root = '/media/meysam/464C8BC94C8BB26B/ROSE-YOUTU/'
+# dataset = RoseYoutu(root,'devel')
+# dataset.createFaceFiles()
 
-root = '/media/meysam/901292F51292E010/SiW/SiW_release/'
-dataset = SiW(root,'train')
-dataset = SiW(root,'devel')
+# root = '/media/meysam/901292F51292E010/SiW/SiW_release/'
+# dataset = SiW(root,'train')
+# dataset = SiW(root,'devel')
 
 root = '/media/meysam/464C8BC94C8BB26B/ROSE-YOUTU/'
 dataset = RoseYoutu(root,'test')
