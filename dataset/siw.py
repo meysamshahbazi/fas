@@ -70,10 +70,10 @@ class SiW(FASDataset):
         with open(face_loc_path, "r") as text_file:
             lines = text_file.readlines()
         for l in lines:
-            x1 = int(l[:-1].split(' ')[0])
-            y1 = int(l[:-1].split(' ')[1])
-            x2 = int(l[:-1].split(' ')[2])
-            y2 = int(l[:-1].split(' ')[3])
+            x1 = int(l.split(' ')[0])
+            y1 = int(l.split(' ')[1])
+            x2 = int(l.split(' ')[2])
+            y2 = int(l.split(' ')[3])
             face_locs.append((x1,y1,x2,y2))   
         return face_locs
 
