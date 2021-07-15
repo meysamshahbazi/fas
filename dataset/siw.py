@@ -115,7 +115,7 @@ class SiW(FASDataset):
             # y2 = y1 + scale*self.shape[0]
             #face_locs.append((x1,y1,x2,y2))   
             
-        return face_locs
+        return face_locs_random
 
 
 
