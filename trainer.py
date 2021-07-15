@@ -40,7 +40,7 @@ def train(net,criterion,optimizer,train_loader,device,epoch,path):
         outputs,emb = net(items)      # Do the forward pass
 
         loss = criterion(outputs, classes,emb,ids) # Calculate the loss
-
+        
         iter_loss += loss.item() # Accumulate the loss
 
         loss.backward()           # Calculate the gradients with help of back propagation
@@ -157,7 +157,7 @@ def proc_args():
     )
     parser.add_argument(
     '--lr',
-    default=0.00001,
+    default=0.0001,
     type = float,
     help='learning rate of optimizer'
     )

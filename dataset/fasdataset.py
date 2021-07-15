@@ -81,7 +81,7 @@ class FASDataset(data.Dataset):
                     ret,frame = cap.read()
                     if ret:
                         frame = rotate_func(frame)
-                        x1,y1,x2,y2 = face_locs[face_locs_idx]
+                        x1,y1,x2,y2 = face_locs[face_locs_idx % len(face_locs)]
                         face_locs_idx +=1
                         frame = frame[y1:y2,x1:x2,:]
                         frame = cv2.resize(frame, dsize=self.shape, interpolation=cv2.INTER_CUBIC)

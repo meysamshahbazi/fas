@@ -12,15 +12,18 @@ from .hrnet import HRNet_W18_small,HRNet_W18_small_v2,HRNet_W18,HRNet_W30,HRNet_
 from .densnet import densenet
 
 class LbpBlock(nn.Module):
-    def __init__(self,out_channels,res=True,scnd_der=False,act=torch.sign):
+    def __init__(self,out_channels,in_channels=3,res=True,scnd_der=False,act=torch.sign):
         super(LbpBlock, self).__init__()
         self.out_channels = out_channels
         self.act = act
         self.res = res
         self.scnd_der = scnd_der
         nb_param = 8 + 1*int(res)+4*int(scnd_der)
-        self.w = nn.Parameter(torch.randn(out_channels,8))
-        self.ws = nn.Parameter(torch.randn(out_channels,4))
+        lbp_ch = 5 # TODO: add this to parameters
+        #self.w = nn.Parameter(torch.randn(out_channels,8))
+        #self.ws = nn.Parameter(torch.randn(out_channels,4))
+        self.w = nn.Parameter(torch.randn(in_channels,lbp_ch,8))
+        self.wl = nn.Parameter(torch.randn(lbp_ch,out_channels))
         self.zp = nn.ZeroPad2d(1)
         # TODO: make weith for res x 
     def forward(self,x):
@@ -39,7 +42,9 @@ class LbpBlock(nn.Module):
         x_lst.append(self.act(x[:,:,1:-1,1:-1]-x[:,:,1:-1,2:]).unsqueeze(dim=2))
         x_cat = torch.cat(x_lst,dim=2)
 
-        x_o.append(torch.einsum('nilwh,ol->nowh',x_cat,torch.exp(self.w)))
+        #x_o.append(torch.einsum('nilwh,ol->nowh',x_cat,torch.exp(self.w)))
+        x_o.append(torch.einsum('nilwh,iml->nimwh',x_cat,torch.exp(self.w)))
+        x_o[-1] = torch.einsum('nimwh,mo->nowh',x_o[-1],self.wl)
 
         if self.scnd_der:
             x_lst = []
