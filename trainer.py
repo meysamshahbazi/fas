@@ -40,7 +40,7 @@ def train(net,criterion,optimizer,train_loader,device,epoch,path):
         outputs,emb = net(items)      # Do the forward pass
 
         loss = criterion(outputs, classes,emb,ids) # Calculate the loss
-        
+
         iter_loss += loss.item() # Accumulate the loss
 
         loss.backward()           # Calculate the gradients with help of back propagation
@@ -65,12 +65,13 @@ def dev(net,criterion,dev_loader,device,epoch,path):
     for i, (items, classes,ids) in enumerate(tqdm(dev_loader)):
         torch.cuda.empty_cache()
         # Convert torch tensor to Variable
-        items = items.to(device)
-        classes = classes.to(device)
-        ids = ids.to(device)
-        outputs,emb = net(items)      # Do the forward pass
-        loss += criterion(outputs, classes,emb,ids).item() # Calculate the loss
-        outputs = sigmoid(outputs) # use sigmoid for infering
+        with torch.no_grad():
+            items = items.to(device)
+            classes = classes.to(device)
+            ids = ids.to(device)
+            outputs,emb = net(items)      # Do the forward pass
+            loss += criterion(outputs, classes,emb,ids).item() # Calculate the loss
+            outputs = sigmoid(outputs) # use sigmoid for infering
         # Record the all labels of dataset and prediction of model for later use!
         lbl += classes.cpu().flatten().tolist()    
         pred += outputs.detach().cpu().flatten().tolist()
@@ -138,39 +139,39 @@ def proc_args():
     )
     parser.add_argument(
     '--num_epochs',
-    default=10,
+    default=20,
     type = int,
-    help='nubmers of epoch for runing train and dev (default: 10)'
+    help='nubmers of epoch for runing train and dev (default: 20)'
     )
     parser.add_argument(
     '--emb_size',
-    default=512,
+    default=128,
     type = int,
     help='size of embeddeing space (default: 512)'
     )
     #
     parser.add_argument(
     '--input_size',
-    default=224,
+    default=112,
     type = int,
-    help='size of input image to model (default: 224)'
+    help='size of input image to model (default: 112)'
     )
     parser.add_argument(
     '--lr',
-    default=0.0001,
+    default=0.00005,
     type = float,
     help='learning rate of optimizer'
     )
     parser.add_argument(
     '--train_batch_size',
-    default=128,
+    default=256,
     type = int,
     help='batch size for train (default: 128)'
     )
 
     parser.add_argument(
     '--devel_batch_size',
-    default=128,
+    default=256,
     type = int,
     help='batch size for development (default: 128)'
     )
@@ -193,31 +194,31 @@ def proc_args():
     return cfg
 
 def get_dataset(cfg):
-
+    shape = (cfg.input_size,cfg.input_size)
     if cfg.dataset == 'casia':
         root = '/media/meysam/464C8BC94C8BB26B/Casia-FASD/'
         data_partion = 'train'
-        train_dataset = CasiaFASD(root,data_partion,cfg.train_batch_size,for_train=True)
+        train_dataset = CasiaFASD(root,data_partion,cfg.train_batch_size,for_train=True,shape=shape)
         data_partion = 'devel'
-        dev_dataset = CasiaFASD(root,data_partion,cfg.devel_batch_size,for_train=False)
+        dev_dataset = CasiaFASD(root,data_partion,cfg.devel_batch_size,for_train=False,shape=shape)
     elif cfg.dataset == 'msu':
         root = '/media/meysam/464C8BC94C8BB26B/MSU-MFSD/'
         #root = '/home/meysam/Desktop/MSU-MFSD/MSU-MFSD-Publish/'
         data_partion = 'train'
-        train_dataset = MsuFsd(root,data_partion,cfg.train_batch_size,for_train=True)
+        train_dataset = MsuFsd(root,data_partion,cfg.train_batch_size,for_train=True,shape=shape)
         data_partion = 'devel'
-        dev_dataset = MsuFsd(root,data_partion,cfg.devel_batch_size,for_train=False)
+        dev_dataset = MsuFsd(root,data_partion,cfg.devel_batch_size,for_train=False,shape=shape)
     elif cfg.dataset == 'oulu':
         root = '/media/meysam/B42683242682E6A8/OULU-NPU/'
         data_partion = 'train'
-        train_dataset = OuluNPU(root,data_partion,cfg.train_batch_size,for_train=True)
+        train_dataset = OuluNPU(root,data_partion,cfg.train_batch_size,for_train=True,shape=shape)
         data_partion = 'devel'
-        dev_dataset = OuluNPU(root,data_partion,cfg.devel_batch_size,for_train=False)
+        dev_dataset = OuluNPU(root,data_partion,cfg.devel_batch_size,for_train=False,shape=shape)
     elif cfg.dataset == 'replay':
         root = '/media/meysam/464C8BC94C8BB26B/Replay-Attack/' 
-        #root = '/home/meysam/Desktop/Replay-Attack/'
-        #root = '/content/replayattack/'
-        shape = (cfg.input_size,cfg.input_size)
+        # root = '/home/meysam/Desktop/Replay-Attack/'
+        # root = '/content/replayattack/'
+        
         data_partion = 'train'
         train_dataset = ReplayAttack(root,data_partion,cfg.train_batch_size,for_train=True,shape=shape)
         data_partion = 'devel'
@@ -225,15 +226,15 @@ def get_dataset(cfg):
     elif cfg.dataset == 'rose':
         root = '/media/meysam/464C8BC94C8BB26B/ROSE-YOUTU/'
         data_partion = 'train'
-        train_dataset = RoseYoutu(root,data_partion,cfg.train_batch_size,for_train=True)
+        train_dataset = RoseYoutu(root,data_partion,cfg.train_batch_size,for_train=True,shape=shape)
         data_partion = 'devel'
-        dev_dataset = RoseYoutu(root,data_partion,cfg.devel_batch_size,for_train=False)
+        dev_dataset = RoseYoutu(root,data_partion,cfg.devel_batch_size,for_train=False,shape=shape)
     elif cfg.dataset == 'siw':
         root = '/media/meysam/901292F51292E010/SiW/SiW_release/'
         data_partion = 'train'
-        train_dataset = SiW(root,data_partion,cfg.train_batch_size,for_train=True)
+        train_dataset = SiW(root,data_partion,cfg.train_batch_size,for_train=True,shape=shape)
         data_partion = 'devel'
-        dev_dataset = SiW(root,data_partion,cfg.devel_batch_size,for_train=False)
+        dev_dataset = SiW(root,data_partion,cfg.devel_batch_size,for_train=False,shape=shape)
     else:
         print("Error: unsuported datset!!")
     
@@ -310,6 +311,7 @@ def main():
     log_file.writelines('criterion: '+str(cfg.criterion)+'\n')
     log_file.writelines('num_epochs: '+str(cfg.num_epochs)+'\n')
     log_file.writelines('use_lbp: '+str(cfg.use_lbp)+'\n')
+    log_file.writelines('lbp_ch: '+str(cfg.lbp_ch)+'\n')
     log_file.writelines('train_batch_size: '+str(cfg.train_batch_size)+'\n')
     log_file.writelines('devel_batch_size: '+str(cfg.devel_batch_size)+'\n')
     log_file.writelines('emb_size: '+str(cfg.emb_size)+'\n')
