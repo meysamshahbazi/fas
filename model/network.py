@@ -11,55 +11,55 @@ from .ghost import GhostNet
 from .hrnet import HRNet_W18_small,HRNet_W18_small_v2,HRNet_W18,HRNet_W30,HRNet_W32,HRNet_W40,HRNet_W44,HRNet_W48,HRNet_W64
 from .densnet import densenet
 
-class LbpBlock1(nn.Module):
-    def __init__(self,out_channels,in_channels=3,res=True,scnd_der=False,act=torch.sign):
-        super(LbpBlock, self).__init__()
-        self.out_channels = out_channels
-        self.act = act
-        self.res = res
-        self.scnd_der = scnd_der
-        nb_param = 8 + 1*int(res)+4*int(scnd_der)
-        lbp_ch = 5 # TODO: add this to parameters
-        #self.w = nn.Parameter(torch.randn(out_channels,8))
-        #self.ws = nn.Parameter(torch.randn(out_channels,4))
-        self.w = nn.Parameter(torch.randn(in_channels,lbp_ch,8))
-        self.wl = nn.Parameter(torch.randn(lbp_ch,out_channels))
-        self.zp = nn.ZeroPad2d(1)
-        # TODO: make weith for res x 
-    def forward(self,x):
-        x_o = []
-        if self.res:
-            x_o.append( x[:,:,1:-1,1:-1])  
+# class LbpBlock1(nn.Module):
+#     def __init__(self,out_channels,in_channels=3,res=True,scnd_der=False,act=torch.sign):
+#         super(LbpBlock, self).__init__()
+#         self.out_channels = out_channels
+#         self.act = act
+#         self.res = res
+#         self.scnd_der = scnd_der
+#         nb_param = 8 + 1*int(res)+4*int(scnd_der)
+#         lbp_ch = 5 # TODO: add this to parameters
+#         #self.w = nn.Parameter(torch.randn(out_channels,8))
+#         #self.ws = nn.Parameter(torch.randn(out_channels,4))
+#         self.w = nn.Parameter(torch.randn(in_channels,lbp_ch,8))
+#         self.wl = nn.Parameter(torch.randn(lbp_ch,out_channels))
+#         self.zp = nn.ZeroPad2d(1)
+#         # TODO: make weith for res x 
+#     def forward(self,x):
+#         x_o = []
+#         if self.res:
+#             x_o.append( x[:,:,1:-1,1:-1])  
 
-        x_lst = []
-        x_lst.append(self.act(x[:,:,1:-1,1:-1]-x[:,:,0:-2,0:-2]).unsqueeze(dim=2))
-        x_lst.append(self.act(x[:,:,1:-1,1:-1]-x[:,:,0:-2,1:-1]).unsqueeze(dim=2))
-        x_lst.append(self.act(x[:,:,1:-1,1:-1]-x[:,:,0:-2,2:]).unsqueeze(dim=2))
-        x_lst.append(self.act(x[:,:,1:-1,1:-1]-x[:,:,1:-1,0:-2]).unsqueeze(dim=2))
-        x_lst.append(self.act(x[:,:,1:-1,1:-1]-x[:,:,2:,0:-2]).unsqueeze(dim=2))
-        x_lst.append(self.act(x[:,:,1:-1,1:-1]-x[:,:,2:,1:-1]).unsqueeze(dim=2))
-        x_lst.append(self.act(x[:,:,1:-1,1:-1]-x[:,:,2:,2:]).unsqueeze(dim=2))
-        x_lst.append(self.act(x[:,:,1:-1,1:-1]-x[:,:,1:-1,2:]).unsqueeze(dim=2))
-        x_cat = torch.cat(x_lst,dim=2)
+#         x_lst = []
+#         x_lst.append(self.act(x[:,:,1:-1,1:-1]-x[:,:,0:-2,0:-2]).unsqueeze(dim=2))
+#         x_lst.append(self.act(x[:,:,1:-1,1:-1]-x[:,:,0:-2,1:-1]).unsqueeze(dim=2))
+#         x_lst.append(self.act(x[:,:,1:-1,1:-1]-x[:,:,0:-2,2:]).unsqueeze(dim=2))
+#         x_lst.append(self.act(x[:,:,1:-1,1:-1]-x[:,:,1:-1,0:-2]).unsqueeze(dim=2))
+#         x_lst.append(self.act(x[:,:,1:-1,1:-1]-x[:,:,2:,0:-2]).unsqueeze(dim=2))
+#         x_lst.append(self.act(x[:,:,1:-1,1:-1]-x[:,:,2:,1:-1]).unsqueeze(dim=2))
+#         x_lst.append(self.act(x[:,:,1:-1,1:-1]-x[:,:,2:,2:]).unsqueeze(dim=2))
+#         x_lst.append(self.act(x[:,:,1:-1,1:-1]-x[:,:,1:-1,2:]).unsqueeze(dim=2))
+#         x_cat = torch.cat(x_lst,dim=2)
 
-        #x_o.append(torch.einsum('nilwh,ol->nowh',x_cat,torch.exp(self.w)))
-        x_o.append(torch.einsum('nilwh,iml->nimwh',x_cat,torch.exp(self.w)))
-        x_o[-1] = torch.einsum('nimwh,mo->nowh',x_o[-1],self.wl)
+#         #x_o.append(torch.einsum('nilwh,ol->nowh',x_cat,torch.exp(self.w)))
+#         x_o.append(torch.einsum('nilwh,iml->nimwh',x_cat,torch.exp(self.w)))
+#         x_o[-1] = torch.einsum('nimwh,mo->nowh',x_o[-1],self.wl)
 
-        if self.scnd_der:
-            x_lst = []
-            x_lst.append(self.act(x[:,:,0:-2,0:-2] + x[:,:,2:,2:] - 2*x[:,:,1:-1,1:-1]).unsqueeze(dim=2))
-            x_lst.append(self.act(x[:,:,0:-2,1:-1] + x[:,:,2:,1:-1] - 2*x[:,:,1:-1,1:-1]).unsqueeze(dim=2))
-            x_lst.append(self.act(x[:,:,0:-2,2:] + x[:,:,2:,0:-2] - 2*x[:,:,1:-1,1:-1]).unsqueeze(dim=2))
-            x_lst.append(self.act(x[:,:,1:-1,0:-2] + x[:,:,1:-1,2:] - 2*x[:,:,1:-1,1:-1]).unsqueeze(dim=2))
-            x_cat = torch.cat(x_lst,dim=2)
-            x_o.append(torch.einsum('nilwh,ol->nowh',x_cat,torch.exp(self.ws)))
+#         if self.scnd_der:
+#             x_lst = []
+#             x_lst.append(self.act(x[:,:,0:-2,0:-2] + x[:,:,2:,2:] - 2*x[:,:,1:-1,1:-1]).unsqueeze(dim=2))
+#             x_lst.append(self.act(x[:,:,0:-2,1:-1] + x[:,:,2:,1:-1] - 2*x[:,:,1:-1,1:-1]).unsqueeze(dim=2))
+#             x_lst.append(self.act(x[:,:,0:-2,2:] + x[:,:,2:,0:-2] - 2*x[:,:,1:-1,1:-1]).unsqueeze(dim=2))
+#             x_lst.append(self.act(x[:,:,1:-1,0:-2] + x[:,:,1:-1,2:] - 2*x[:,:,1:-1,1:-1]).unsqueeze(dim=2))
+#             x_cat = torch.cat(x_lst,dim=2)
+#             x_o.append(torch.einsum('nilwh,ol->nowh',x_cat,torch.exp(self.ws)))
             
-        out = torch.cat(x_o,dim=1)
-        out = out.contiguous()
-        return self.zp(out)
-    def get_out_ch(self):
-        return self.out_channels + 3*int(self.res)+self.out_channels*int(self.scnd_der)
+#         out = torch.cat(x_o,dim=1)
+#         out = out.contiguous()
+#         return self.zp(out)
+#     def get_out_ch(self):
+#         return self.out_channels + 3*int(self.res)+self.out_channels*int(self.scnd_der)
 
 heaviside = lambda x: torch.heaviside(x,torch.FloatTensor([0]))
 class LbpBlock(nn.Module):# new version
