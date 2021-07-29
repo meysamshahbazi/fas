@@ -145,7 +145,7 @@ def proc_args():
     )
     parser.add_argument(
     '--emb_size',
-    default=128,
+    default=512,
     type = int,
     help='size of embeddeing space (default: 512)'
     )
@@ -269,10 +269,10 @@ def get_criterion(cfg,net):
     elif cfg.criterion == 'ArcB':
         criterion = ArcB(net,m=0.75,s=0.75)
     elif cfg.criterion == 'IdBce':
-        criterion = IdBce(alpha=0.5,M=0.5)
+        criterion = IdBce(alpha=0.5,M=1.2)
     elif cfg.criterion == 'arcbid':
         # alpha,net,M = 0.5,m=0.5)
-        criterion = ArcbId(alpha=0.5,net=net,M=0.5,m=0.5)
+        criterion = ArcbId(alpha=0.5,net=net,M=1.2,m=0.5)
 
     return criterion
 

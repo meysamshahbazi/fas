@@ -61,7 +61,8 @@ from .densnet import densenet
 #     def get_out_ch(self):
 #         return self.out_channels + 3*int(self.res)+self.out_channels*int(self.scnd_der)
 
-heaviside = lambda x: torch.heaviside(x,torch.FloatTensor([0]))
+heaviside = lambda x: torch.heaviside(x,torch.zeros_like(x))
+
 class LbpBlock(nn.Module):# new version
     def __init__(self,out_channels,in_channels=3,res=True,scnd_der=False,act=heaviside):
         super(LbpBlock, self).__init__()
@@ -110,7 +111,7 @@ class Model(nn.Module):
       super(Model, self).__init__()
       self.use_lbp = cfg.use_lbp 
       self.emb_size = cfg.emb_size
-      if cfg.use_lbp:
+      if self.use_lbp:
         self.lbp = LbpBlock(cfg.lbp_ch)
         nb_ch = self.lbp.get_out_ch()
 
