@@ -46,4 +46,13 @@ def calcEER(lbl,pred,epoch,path,plot=True,precision=0.01):
     return FAR,FRR,threshold[index_EER]
 
 
+def calcHTER(lbl,pred,threshold):
+  lbl = np.array(lbl)
+  pred = np.array(pred)
+  pre = np.where(pred>threshold,1,0)
+  FAR = np.logical_and(pre==1,lbl ==0).sum()*100/(lbl==0).sum()
+  FRR = np.logical_and(pre==0,lbl ==1).sum()*100/(lbl==1).sum()
+  HTER = (FAR+FRR)/2
+  print("HTER: ",HTER)
+  return HTER
     
