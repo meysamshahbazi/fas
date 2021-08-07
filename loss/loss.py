@@ -99,10 +99,8 @@ class ArcbId(nn.Module):
         scale = torch.norm(w)*torch.norm(emb,dim=1)
         scale = scale.unsqueeze(dim=1)
         theta = torch.acos(emb.matmul(w.T)/scale)
-        # theta1 = torch.where(theta<math.pi/2-self.m,theta,theta+self.m)
-        # theta2 = torch.where(theta>math.pi/2+self.m,theta,theta-self.m)
+
         outs = classes*scale*torch.cos(theta+self.m) + (1-classes)*scale*torch.cos(theta-self.m)
-        # outs = classes*scale*torch.cos(theta1) + (1-classes)*scale*torch.cos(theta2)
         l = 0
 
         emb = F.normalize(emb)
@@ -117,13 +115,10 @@ class ArcbId(nn.Module):
         l2 = 0
         if c1.sum() > 0: 
             l1 = torch.norm((c1*emb_dif),dim=1).sum()/c1.sum()
-
         if c2.sum() > 0:
-            # l2 = torch.norm((c2*emb_dif),dim=1).sum()/c2.sum()
-            l2 = ( c2*torch.max(torch.zeros(len(idxx),device=emb.device),self.M-torch.norm((emb_dif),2,dim=1)) ).sum()/(c2.sum())
-        # l = l1+l2
+            l2 =  c2*torch.max(torch.zeros(len(idxx),device=emb.device),self.M-torch.norm((emb_dif),2,dim=1)).sum()/c2.sum()
+
         lbce = self.bce(outs,classes)
-        # print(str(l1)," | ",str(l2) , " | ",lbce)
         return lbce + self.alpha*l1 + self.beta*l2
 
 
