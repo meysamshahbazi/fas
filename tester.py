@@ -109,9 +109,6 @@ def proc_args():
         test_dataset = MsuFsd(root,data_partion,cfg.devel_batch_size,for_train=False,shape=shape)
     elif cfg.dataset == 'oulu':
         root = '/media/meysam/B42683242682E6A8/OULU-NPU/'
-        data_partion = 'train'
-        train_dataset = OuluNPU(root,data_partion,cfg.train_batch_size,for_train=True,shape=shape)
-        data_partion = 'devel'
         test_dataset = OuluNPU(root,data_partion,cfg.devel_batch_size,for_train=False,shape=shape)
     elif cfg.dataset == 'replay':
         root = '/media/meysam/464C8BC94C8BB26B/Replay-Attack/' 
@@ -138,7 +135,6 @@ def proc_args():
     return test_loader
 
 def test(net,criterion,dev_loader,device,epoch,path):
-    global dev_loss
     loss = 0.0
     iterations = 0
     sigmoid = nn.Sigmoid()
@@ -185,7 +181,7 @@ def main():
     pred = []
     net.eval() # Put the network into evaluate mode
 
-    for i, (items, classes,ids) in enumerate(tqdm(dev_loader)):
+    for i, (items, classes,ids) in enumerate(tqdm(test_loader)):
         torch.cuda.empty_cache()
         # Convert torch tensor to Variable
         with torch.no_grad():

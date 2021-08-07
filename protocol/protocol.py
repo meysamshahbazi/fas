@@ -34,8 +34,8 @@ def calcEER(lbl,pred,epoch,path,plot=True,precision=0.01):
 
     plt.legend()
     plt.xlabel('threshold')
-    plt.ylabel('acc')
-    plt.title(' acc per threshold')
+    plt.ylabel('err')
+    plt.title(' err per threshold')
     plt.grid()
     plt.savefig('outputs/'+path+'/eer_figs/ep_'+str(epoch)+'.png')
     plt.close()
