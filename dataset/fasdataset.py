@@ -48,8 +48,8 @@ class FASDataset(data.Dataset):
                 self.opened_vid[self.vid_idx] = []
                 rotate_func = self.get_rotate_func(self.datadict[str(self.vid_idx)]['name'])
                 cap = cv2.VideoCapture(self.root+self.datadict[str(self.vid_idx)]['name'] )
-                # face_locs = self.get_randomed_face_loc(self.vid_idx)
-                face_locs = self.get_face_loc(self.vid_idx) 
+                face_locs = self.get_randomed_face_loc(self.vid_idx)
+                # face_locs = self.get_face_loc(self.vid_idx) 
                 face_locs_idx = 0
                 while cap.isOpened():
                     ret,frame = cap.read()
@@ -76,8 +76,8 @@ class FASDataset(data.Dataset):
                 self.vid_list = []
                 rotate_func = self.get_rotate_func(self.datadict[str(self.vid_idx)]['name'])
                 cap = cv2.VideoCapture(self.root+self.datadict[str(self.vid_idx)]['name'] )
-                # face_locs = self.get_randomed_face_loc(self.vid_idx) 
-                face_locs = self.get_face_loc(self.vid_idx) 
+                face_locs = self.get_randomed_face_loc(self.vid_idx) 
+                # face_locs = self.get_face_loc(self.vid_idx) 
                 face_locs_idx = 0
                 while cap.isOpened():
                     ret,frame = cap.read()
