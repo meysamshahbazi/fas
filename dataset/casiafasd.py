@@ -97,6 +97,7 @@ class CasiaFASD(FASDataset):
         face_loc_path = self.datadict[str(vid_idx)]['name'].split('.')[0]
         face_loc_path = self.root+face_loc_path+'.face'
         face_locs = []
+        img_shape = self.datadict[str(vid_idx)]['resolution']
         with open(face_loc_path, "r") as text_file:
             lines = text_file.readlines()
         for l in lines:
@@ -104,8 +105,14 @@ class CasiaFASD(FASDataset):
             y1 = int(l[:-1].split(', ')[2])
             x2 = int(l[:-1].split(', ')[3])
             y2 = int(l[:-1].split(', ')[4])
+            x1 = max(0,x1)
+            y1 = max(0,y1)
+            x2 = min(img_shape[1]-1,x2)
+            y2 = min(img_shape[0]-1,y2)
             face_locs.append((x1,y1,x2,y2))   
         return face_locs
+
+    
 
     def get_randomed_face_loc(self,vid_idx):
         '''

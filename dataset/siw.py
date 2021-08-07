@@ -67,6 +67,7 @@ class SiW(FASDataset):
         face_loc_path = self.datadict[str(vid_idx)]['name'].split('.')[0]
         face_loc_path = self.root+face_loc_path+'.face'
         face_locs = []
+        img_shape = self.datadict[str(vid_idx)]['resolution']
         with open(face_loc_path, "r") as text_file:
             lines = text_file.readlines()
         for l in lines:
@@ -74,6 +75,14 @@ class SiW(FASDataset):
             y1 = int(l.split(' ')[1])
             x2 = int(l.split(' ')[2])
             y2 = int(l.split(' ')[3])
+            x1 = max(0,x1)
+            y1 = max(0,y1)
+            x2 = min(img_shape[1]-1,x2)
+            y2 = min(img_shape[0]-1,y2)
+            if (x1,x2,y1,y2)==(0,0,0,0):
+                # in this dataset some of frame didnt detect face and have 0,0,0,0
+                y2 = img_shape[0]-1
+                x2 = img_shape[1]-1
             face_locs.append((x1,y1,x2,y2))   
         return face_locs
 
@@ -93,28 +102,7 @@ class SiW(FASDataset):
             else:
                 x1,y1,x2,y2 = self.random_crop(x1,y1,x2,y2,img_shape)
 
-            face_locs_random.append((x1,y1,x2,y2))  
-        # face_loc_path = self.datadict[str(vid_idx)]['name'].split('.')[0]
-        # face_loc_path = self.root+face_loc_path+'.face'
-        # face_locs = []
-        # with open(face_loc_path, "r") as text_file:
-        #     lines = text_file.readlines()
-        # for l in lines:
-        #     x1 = int(l[:-1].split(' ')[0])
-        #     y1 = int(l[:-1].split(' ')[1])
-        #     x2 = int(l[:-1].split(' ')[2])
-        #     y2 = int(l[:-1].split(' ')[3])
-        #     x1,y1,x2,y2 = self.random_crop(x1,y1,x2,y2,img_shape)
-
-            # scale = max(math.ceil((x2-x1)/self.shape[1]), math.ceil((y2-y1)/self.shape[0]))
-
-            # x1 = random.randint(max(0,x2-scale*self.shape[1]),min(x1,img_shape[1]-scale*self.shape[1]))
-            # y1 = random.randint(max(0,y2-scale*self.shape[0]),min(y1,img_shape[0]-scale*self.shape[0]))
-            
-            # x2 = x1 + scale*self.shape[1]
-            # y2 = y1 + scale*self.shape[0]
-            #face_locs.append((x1,y1,x2,y2))   
-            
+            face_locs_random.append((x1,y1,x2,y2))             
         return face_locs_random
 
 

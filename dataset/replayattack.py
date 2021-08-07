@@ -66,6 +66,7 @@ class ReplayAttack(FASDataset):
         face_loc_path = self.datadict[str(vid_idx)]['name'].split('.')[0]
         face_loc_path = self.root+'replayattack-face-locations-v2/face-locations/'+face_loc_path+'.face'
         face_locs = []
+        img_shape = self.datadict[str(vid_idx)]['resolution']
         with open(face_loc_path, "r") as text_file:
             lines = text_file.readlines()
         for l in lines:
@@ -73,6 +74,14 @@ class ReplayAttack(FASDataset):
             y1 = int(l[:-1].split(' ')[2])
             x2 = int(l[:-1].split(' ')[3])+x1
             y2 = int(l[:-1].split(' ')[4])+y1
+            x1 = max(0,x1)
+            y1 = max(0,y1)
+            x2 = min(img_shape[1]-1,x2)
+            y2 = min(img_shape[0]-1,y2)
+            if (x1,x2,y1,y2)==(0,0,0,0):
+                # in this dataset some of frame didnt detect face and have 0,0,0,0
+                y2 = img_shape[0]-1
+                x2 = img_shape[1]-1
             face_locs.append((x1,y1,x2,y2))   
         return face_locs
 
