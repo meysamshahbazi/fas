@@ -4,13 +4,14 @@ import torch.nn as nn
 import torch.nn.functional as F
 from .resnext import resnext101_32x8d,resnext50_32x4d
 from .resattnet import AttentionNet_IR_56,AttentionNet_IRSE_56,AttentionNet_IR_92,AttentionNet_IRSE_92
-from .resnet import ResNet_18, ResNet_50,ResNet_101,ResNet_152
+from .resnet import ResNet_18,ResNet_50,ResNet_101,ResNet_152
 from .efficientnet import efficientnet
 from .mobilenet import MobileFaceNet,MobileNetV2,MobileNetV3,MobileNeXt
 from .ghost import GhostNet
 from .hrnet import HRNet_W18_small,HRNet_W18_small_v2,HRNet_W18,HRNet_W30,HRNet_W32,HRNet_W40,HRNet_W44,HRNet_W48,HRNet_W64
 from .densnet import densenet
-
+from .alexnet import AlexNet,AlexNetLite
+from .vgg import VGG_16
 # class LbpBlock1(nn.Module):
 #     def __init__(self,out_channels,in_channels=3,res=True,scnd_der=False,act=torch.sign):
 #         super(LbpBlock, self).__init__()
@@ -64,7 +65,7 @@ from .densnet import densenet
 heaviside = lambda x: torch.heaviside(x,torch.zeros_like(x))
 
 class LbpBlock(nn.Module):# new version
-    def __init__(self,out_channels,in_channels=3,res=True,scnd_der=False,act=heaviside):
+    def __init__(self,out_channels,in_channels=3,res=False,scnd_der=False,act=heaviside):
         super(LbpBlock, self).__init__()
         self.out_channels = out_channels
         self.act = act
@@ -72,7 +73,7 @@ class LbpBlock(nn.Module):# new version
         self.scnd_der = scnd_der
         self.w = nn.Parameter(torch.randn(out_channels,8))
         self.zp = nn.ZeroPad2d(1)
-        self.conv1x1 = nn.Conv2d(in_channels, out_channels, kernel_size=1,bias=False)
+        # self.conv1x1 = nn.Conv2d(in_channels, out_channels, kernel_size=1,bias=False)
 
     def forward(self,x):
         x_o = []
@@ -80,7 +81,7 @@ class LbpBlock(nn.Module):# new version
             x_o.append(x)  
             
         x_lst = []
-        x = self.conv1x1(x)
+        # x = self.conv1x1(x)
         x_lst.append(self.act(x[:,:,1:-1,1:-1]-x[:,:,0:-2,0:-2]).unsqueeze(dim=2))
         x_lst.append(self.act(x[:,:,1:-1,1:-1]-x[:,:,0:-2,1:-1]).unsqueeze(dim=2))
         x_lst.append(self.act(x[:,:,1:-1,1:-1]-x[:,:,0:-2,2:]).unsqueeze(dim=2))
@@ -182,4 +183,8 @@ def get_backbone(cfg,nb_ch):
     model = HRNet_W64(input_size,emb_size=cfg.emb_size,nb_ch=nb_ch)  
   elif cfg.backbone == 'densenet':
     model = densenet(input_size,emb_size=cfg.emb_size,nb_ch=nb_ch)    
+  elif cfg.backbone == 'alexnet':
+    model = AlexNetLite(emb_size=cfg.emb_size,nb_ch=nb_ch)
+  elif cfg.backbone == 'vgg':
+    model = VGG_16(emb_size=cfg.emb_size,nb_ch=nb_ch)
   return model #densenet

@@ -68,8 +68,8 @@ class IdBce(nn.Module):
         idd = torch.combinations(ids.reshape(-1),2)
         cll = torch.combinations(classes.reshape(-1),2)
         idxx = torch.combinations(torch.arange(0,len(ids)),2)
-        c1 = torch.logical_and(idd[:,0]==idd[:,1],cll[:,0]!=cll[:,1]).reshape(-1,1) # index for same id but diffrent class label
-        c2 = torch.logical_and(idd[:,0]!=idd[:,1],cll[:,0]==cll[:,1]) # index for same class label but diffrent id
+        c1 = torch.logical_and(idd[:,0]!=idd[:,1],cll[:,0]==cll[:,1]).reshape(-1,1) # index for same class but diffrent id
+        c2 = torch.logical_and(idd[:,0]==idd[:,1],cll[:,0]!=cll[:,1]) # index for difrrent class label but same id
         emb_dif = emb[idxx[:,0]]-emb[idxx[:,1]]
         if c1.sum() > 0: 
             l += torch.norm((c1*emb_dif),dim=1).sum()/c1.sum()
@@ -116,9 +116,18 @@ class ArcbId(nn.Module):
         if c1.sum() > 0: 
             l1 = torch.norm((c1*emb_dif),dim=1).sum()/c1.sum()
         if c2.sum() > 0:
+            # l2 = ( c2*torch.max(torch.zeros(len(idxx),device=emb.device),self.M-torch.norm((emb_dif),2,dim=1)) ).sum()/(c2.sum())
             l2 =  (c2*torch.max(torch.zeros(len(idxx),device=emb.device),self.M-torch.norm((emb_dif),2,dim=1))).sum()/c2.sum()
 
+        # if c1.sum() > 0: 
+        #     emb_dif1 = emb[idxx[c1][:,0]]-emb[idxx[c1][:,1]]
+        #     l1 = torch.norm((emb_dif1),dim=1).sum()/c1.sum()
+        # if c2.sum() > 0:
+        #     emb_dif2 = emb[idxx[c2][:,0]]-emb[idxx[c2][:,1]]
+        #     l2 =  (torch.max(torch.zeros(c2.sum(),device=emb.device),self.M-torch.norm((emb_dif2),2,dim=1))).sum()/c2.sum()
+        # print(l1,"|",l2)
         lbce = self.bce(outs,classes)
+        # print(l1,"|",l2,"|",lbce)
         return lbce + self.alpha*l1 + self.beta*l2
 
 

@@ -14,7 +14,7 @@ class FASDataset(data.Dataset):
     this is base class for FAS datasets
     other class must inheritance form this but impliment their own methods for cusotm functionality
     '''
-    def __init__(self,root,data_partion,batch_size=1,for_train=True,shape=(224,224)):
+    def __init__(self,root,data_partion,batch_size=1,for_train=True,shape=(224,224),frame_per_vid=300):
         self.root = root
         self.data_partion = data_partion
         self.for_train = for_train # for dev and test this is False
@@ -23,21 +23,29 @@ class FASDataset(data.Dataset):
         self.opened_vid = {}
         self.batch_size = batch_size
         self.shape = shape
+        self.frame_per_vid = frame_per_vid
         if not os.path.isfile(self.root+self.data_partion+'.json'):
           print("Json doesnt Exist! try to create it and it would take a time!")
           self.crateJsonSummery()
         with open(self.root+self.data_partion+'.json', 'r') as openfile:
             self.datadict = json.load(openfile)  
+        # self.transform = transforms.Compose([
+        #                     transforms.ToTensor(),
+        #                     transforms.Normalize(mean=[0.485, 0.456, 0.406],
+        #                                         std=[0.229, 0.224, 0.225]) #,
+        #                    # transforms.RandomVerticalFlip(p=0.5)
+        #                     ])
         self.transform = transforms.Compose([
-                            transforms.ToTensor(),
-                            transforms.Normalize(mean=[0.485, 0.456, 0.406],
-                                                std=[0.229, 0.224, 0.225])
-                            ])
+                            transforms.ToTensor()
+        ])
 
 
 
     def __len__(self):
+        # if self.for_train:
         return self.datadict[str(len(self.datadict)-1)]['nb_frame_total']
+        # else:
+        #      return len(self.datadict) #TODO: need chaaaaaaaaaange 
     
     def __getitem__(self,index): 
         if self.for_train:
@@ -49,6 +57,7 @@ class FASDataset(data.Dataset):
                 rotate_func = self.get_rotate_func(self.datadict[str(self.vid_idx)]['name'])
                 cap = cv2.VideoCapture(self.root+self.datadict[str(self.vid_idx)]['name'] )
                 face_locs = self.get_randomed_face_loc(self.vid_idx)
+                
                 # face_locs = self.get_face_loc(self.vid_idx) 
                 face_locs_idx = 0
                 while cap.isOpened():
@@ -62,9 +71,14 @@ class FASDataset(data.Dataset):
                         self.opened_vid[self.vid_idx].append(frame)
                     else:
                         break
+                
                 cap.release()
-            x = self.opened_vid[self.vid_idx][frame_index]
-            self.opened_vid[self.vid_idx][frame_index] = []
+                random.shuffle(self.opened_vid[self.vid_idx])
+                if len(self.opened_vid[self.vid_idx]) > self.frame_per_vid:
+                    self.opened_vid[self.vid_idx] = self.opened_vid[self.vid_idx][:self.frame_per_vid]
+            # x = self.opened_vid[self.vid_idx][frame_index%self.datadict[str(self.vid_idx)]['nb_frame']]
+            x = self.opened_vid[self.vid_idx][frame_index%len(self.opened_vid[self.vid_idx])]
+            # self.opened_vid[self.vid_idx][frame_index] = []
                 
         else: # for dev and test
             if index == 0 or index >= self.datadict[str(self.vid_idx)]['nb_frame_total']:
@@ -96,15 +110,41 @@ class FASDataset(data.Dataset):
                 frame_idx = index - self.datadict[str(self.vid_idx-1)]['nb_frame_total']
             else:
                 frame_idx = index
+
+            # one frame per videro:
             
             x = self.vid_list[frame_idx]
-          
+
+                # self.vid_list = []
+                # rotate_func = self.get_rotate_func(self.datadict[str(self.vid_idx)]['name'])
+                # cap = cv2.VideoCapture(self.root+self.datadict[str(index)]['name'] )
+                # # face_locs = self.get_randomed_face_loc(self.vid_idx) 
+                # face_locs = self.get_face_loc(index) 
+                # face_locs_idx = 0
+                # while cap.isOpened():
+                #     ret,frame = cap.read()
+                #     if ret:
+                #         frame = rotate_func(frame)
+                #         x1,y1,x2,y2 = face_locs[face_locs_idx % len(face_locs)]
+                #         face_locs_idx +=1
+                #         frame = frame[y1:y2,x1:x2,:]
+                #         frame = cv2.resize(frame, dsize=self.shape, interpolation=cv2.INTER_CUBIC)
+                #         self.vid_list.append(frame)
+                #     else:
+                #         break
+                # cap.release()
+
+                # x = self.vid_list[len(self.vid_list)//2]
+
+        x =  cv2.cvtColor(x, cv2.COLOR_BGR2HSV) 
         x = self.transform(x)
         #x = torch.transpose(x,0,2)
         #x = x.transpose(2,1,0)
         #x = torch.FloatTensor(x)
-        
+        # if self.for_train:
         y = int(self.datadict[str(self.vid_idx)]['real_or_spoof'])
+        # else:
+        #     y = int(self.datadict[str(index)]['real_or_spoof'])
         y = torch.FloatTensor([y])
         id = int(self.datadict[str(self.vid_idx)]['person_id'])
         id = torch.FloatTensor([id])

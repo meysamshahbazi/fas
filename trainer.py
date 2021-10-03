@@ -3,7 +3,7 @@ from model.resnext import resnext50_32x4d
 import torch.nn as nn
 import torch
 from protocol.protocol import calcEER
-from dataset.sampler import TrainBatchSampler
+from dataset.sampler import TrainBatchSampler,TrainBatchSampler2,TrainBatchSampler3,TrainBatchSampler4
 from dataset.replayattack import ReplayAttack
 from dataset.casiafasd import CasiaFASD
 from dataset.msumfsd import MsuFsd
@@ -110,13 +110,13 @@ def proc_args():
     parser.add_argument(
     '--use_lbp',
     type = int,
-    default=1,
+    default=0,
     help='whether or not using lbp befor backbone.\n '
     )
     parser.add_argument(
     '--lbp_ch',
     type = int,
-    default=8,
+    default=3,
     help='nubmer of channel outputs for lbp operator (default: 8).\n '
     )
     parser.add_argument(
@@ -152,7 +152,7 @@ def proc_args():
     #
     parser.add_argument(
     '--input_size',
-    default=112,
+    default=224,
     type = int,
     help='size of input image to model (default: 112)'
     )
@@ -164,14 +164,14 @@ def proc_args():
     )
     parser.add_argument(
     '--train_batch_size',
-    default=256,
+    default=64,
     type = int,
     help='batch size for train (default: 128)'
     )
 
     parser.add_argument(
     '--devel_batch_size',
-    default=256,
+    default=64,
     type = int,
     help='batch size for development (default: 128)'
     )
@@ -238,7 +238,8 @@ def get_dataset(cfg):
     else:
         print("Error: unsuported datset!!")
     
-    tbs = TrainBatchSampler(train_dataset,cfg.train_batch_size)
+    # tbs = TrainBatchSampler(train_dataset,cfg.train_batch_size)
+    tbs = TrainBatchSampler4(train_dataset,cfg.train_batch_size)
     train_loader = data.DataLoader(dataset=train_dataset, batch_size= 1, 
                                shuffle= False, sampler = None, batch_sampler = tbs,
                                num_workers= 0, collate_fn= None, pin_memory = False, 
@@ -255,11 +256,13 @@ def get_dataset(cfg):
 
     return train_loader,dev_loader
 
-
+# 
 
 def get_optimizer(net,cfg):
     if cfg.optimizer == 'adam':
-        optimizer = torch.optim.Adam(net.parameters(),lr=cfg.lr)
+        # optimizer = torch.optim.Adam(net.parameters(),lr=cfg.lr,betas=(0.9, 0.999), eps=1e-08, weight_decay=0, amsgrad=True)
+        # optimizer = torch.optim.AdamW(net.parameters(), lr=cfg.lr, betas=(0.9, 0.999), eps=1e-08, weight_decay=0.0001, amsgrad=True)
+        optimizer = torch.optim.SGD(net.parameters(), lr=cfg.lr, momentum=0.9, dampening=0, weight_decay=0.001, nesterov=True)
 
     return optimizer
 
@@ -269,10 +272,10 @@ def get_criterion(cfg,net):
     elif cfg.criterion == 'ArcB':
         criterion = ArcB(net,m=0.75,s=0.75)
     elif cfg.criterion == 'IdBce':
-        criterion = IdBce(alpha=0.5,M=1.2)
+        criterion = IdBce(alpha=1,M=2)
     elif cfg.criterion == 'arcbid':
         # alpha,net,M = 0.5,m=0.5)
-        criterion = ArcbId(alpha=0.5,beta=0.5,net=net,M=1.95,m=0.75)
+        criterion = ArcbId(alpha=2,beta=2,net=net,M=2,m=0.75)
 
     return criterion
 
@@ -287,6 +290,7 @@ def main():
 
     #net = get_net(cfg) 
     net = Model(cfg)
+
     net.to(device)
 
     # Our loss function
@@ -295,7 +299,7 @@ def main():
     
 
     optimizer = get_optimizer(net,cfg)
-
+    print('lr: '+str(cfg.lr))
     num_epochs = cfg.num_epochs
     path = cfg.dataset + '_' + cfg.backbone + '_' + cfg.criterion + '_' + cfg.optimizer+'_lbp_'+str(cfg.use_lbp)
     os.mkdir('outputs/'+path)
