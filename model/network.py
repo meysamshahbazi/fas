@@ -4,7 +4,7 @@ import torch.nn as nn
 import torch.nn.functional as F
 from .resnext import resnext101_32x8d,resnext50_32x4d
 from .resattnet import AttentionNet_IR_56,AttentionNet_IRSE_56,AttentionNet_IR_92,AttentionNet_IRSE_92
-from .resnet import ResNet_50,ResNet_101,ResNet_152
+from .resnet import ResNet_18, ResNet_50,ResNet_101,ResNet_152
 from .efficientnet import efficientnet
 from .mobilenet import MobileFaceNet,MobileNetV2,MobileNetV3,MobileNeXt
 from .ghost import GhostNet
@@ -144,6 +144,8 @@ def get_backbone(cfg,nb_ch):
     model = AttentionNet_IRSE_92(input_size,cfg.emb_size,nb_ch=nb_ch)
   elif cfg.backbone == 'ResNet_50':
     model = ResNet_50(input_size,emb_size=cfg.emb_size,nb_ch=nb_ch)
+  elif cfg.backbone == 'ResNet_18':
+    model = ResNet_18(input_size,emb_size=cfg.emb_size,nb_ch=nb_ch)
   elif cfg.backbone == 'ResNet_101':
     model = ResNet_101(input_size,emb_size=cfg.emb_size,nb_ch=nb_ch)
   elif cfg.backbone == 'ResNet_152':

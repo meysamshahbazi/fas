@@ -161,6 +161,11 @@ class ResNet(nn.Module):
         return x
 
 
+        
+def ResNet_18(input_size,emb_size,nb_ch):
+    model = ResNet(input_size,Bottleneck,[2,2,2,2],emb_size,nb_ch)
+    return model
+
 def ResNet_50(input_size, emb_size,nb_ch):
     """Constructs a ResNet-50 model.
     """

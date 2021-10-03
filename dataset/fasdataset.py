@@ -114,10 +114,10 @@ class FASDataset(data.Dataset):
         self.opened_vid = {}
     def random_crop(self,x1,y1,x2,y2,img_shape):
         # in some dataset(oulu,casia,rose) bounding box is outter image shape next 4 line will fix this!
-        # x1 = max(0,x1)
-        # y1 = max(0,y1)
-        # x2 = min(img_shape[1],x2)
-        # y2 = min(img_shape[0],y2)
+        x1 = max(0,x1)
+        y1 = max(0,y1)
+        x2 = min(img_shape[1],x2)
+        y2 = min(img_shape[0],y2)
 
         
         scale = max(math.ceil((x2-x1)/self.shape[1]), math.ceil((y2-y1)/self.shape[0]))

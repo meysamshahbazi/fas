@@ -272,7 +272,7 @@ def get_criterion(cfg,net):
         criterion = IdBce(alpha=0.5,M=1.2)
     elif cfg.criterion == 'arcbid':
         # alpha,net,M = 0.5,m=0.5)
-        criterion = ArcbId(alpha=0.5,beta=0.5,net=net,M=1.5,m=0.75)
+        criterion = ArcbId(alpha=0.5,beta=0.5,net=net,M=1.95,m=0.75)
 
     return criterion
 

@@ -116,7 +116,7 @@ class ArcbId(nn.Module):
         if c1.sum() > 0: 
             l1 = torch.norm((c1*emb_dif),dim=1).sum()/c1.sum()
         if c2.sum() > 0:
-            l2 =  c2*torch.max(torch.zeros(len(idxx),device=emb.device),self.M-torch.norm((emb_dif),2,dim=1)).sum()/c2.sum()
+            l2 =  (c2*torch.max(torch.zeros(len(idxx),device=emb.device),self.M-torch.norm((emb_dif),2,dim=1))).sum()/c2.sum()
 
         lbce = self.bce(outs,classes)
         return lbce + self.alpha*l1 + self.beta*l2
