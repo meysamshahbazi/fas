@@ -8,7 +8,7 @@ import json
 import torch
 import glob
 #from mtcnn.mtcnn import MTCNN
-from torch_mtcnn import detect_faces
+# from torch_mtcnn import detect_faces
 from PIL import Image
 from tqdm import tqdm
 

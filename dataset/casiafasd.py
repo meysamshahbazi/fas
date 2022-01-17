@@ -6,7 +6,7 @@ import os
 import timeit
 import json
 import torch
-from torch_mtcnn import detect_faces
+# from torch_mtcnn import detect_faces
 from tqdm import tqdm
 from PIL import Image
 
