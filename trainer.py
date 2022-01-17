@@ -16,7 +16,7 @@ from torch.utils import data
 import matplotlib.pyplot as plt
 import os
 import timeit
-import numpy as np
+# import numpy as np
 from tqdm import tqdm
 
 
