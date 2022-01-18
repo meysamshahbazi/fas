@@ -42,16 +42,16 @@ def calcEER(lbl,pred,epoch,path,plot=True,precision=0.01):
     np.savetxt('outputs/'+path+'/eer_figs/ep_'+str(epoch)+'_FAR.csv', np.array(FAR), delimiter=',', fmt='%f')
     np.savetxt('outputs/'+path+'/eer_figs/ep_'+str(epoch)+'_FRR.csv', np.array(FRR), delimiter=',', fmt='%f')
     # plt.show()
+  print('EER: '+str((FAR[index_EER]+FRR[index_EER])/2))
 
-    return FAR,FRR,threshold[index_EER]
+  return FAR,FRR,threshold[index_EER]
 
 
 def calcHTER(lbl,pred,threshold,path):
   lbl = np.array(lbl)
   pred = np.array(pred)
   pre = np.where(pred>threshold,1,0)
-  print(lbl.shape)
-  print(pre.shape)
+
   FAR = np.logical_and(pre==1,lbl ==0).sum()*100/(lbl==0).sum()
   FRR = np.logical_and(pre==0,lbl ==1).sum()*100/(lbl==1).sum()
   HTER = (FAR+FRR)/2
