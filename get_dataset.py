@@ -1,5 +1,5 @@
 
-from dataset.sampler import TrainBatchSampler,TrainBatchSampler2,TrainBatchSampler3,TrainBatchSampler4
+from dataset.sampler import TrainBatchSampler
 from dataset.replayattack import ReplayAttack
 from dataset.casiafasd import CasiaFASD
 from dataset.msumfsd import MsuFsd
@@ -32,9 +32,10 @@ def get_dataset(cfg):
         data_partion = 'devel'
         dev_dataset = OuluNPU(root,data_partion,cfg.devel_batch_size,for_train=False,shape=shape)
     elif cfg.dataset == 'replay':
-        root = '/media/meysam/464C8BC94C8BB26B/Replay-Attack/' 
+        # root = '/media/meysam/464C8BC94C8BB26B/Replay-Attack/' 
         # root = '/home/meysam/Desktop/Replay-Attack/'
         # root = '/content/replayattack/'
+        root = '/media/meysam/hdd/dataset/replay-attack/'
         
         data_partion = 'train'
         train_dataset = ReplayAttack(root,data_partion,cfg.train_batch_size,for_train=True,shape=shape)
@@ -56,7 +57,8 @@ def get_dataset(cfg):
         print("Error: unsuported datset!!")
     
     # tbs = TrainBatchSampler(train_dataset,cfg.train_batch_size)
-    tbs = TrainBatchSampler4(train_dataset,cfg.train_batch_size)
+    tbs = TrainBatchSampler(train_dataset,cfg.train_batch_size)
+
     train_loader = data.DataLoader(dataset=train_dataset, batch_size= 1, 
                                shuffle= False, sampler = None, batch_sampler = tbs,
                                num_workers= 0, collate_fn= None, pin_memory = False, 
