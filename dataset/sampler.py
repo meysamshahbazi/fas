@@ -16,7 +16,7 @@ class TrainBatchSampler(data.sampler.Sampler):
     increase in order of magnitude!
 
     '''
-    def __init__(self, dataset, batch_size,frame_per_vid='min'):
+    def __init__(self, dataset, batch_size,frame_per_vid='max'):
         super(TrainBatchSampler, self).__init__(None)
         self.batch_size = batch_size
         self.dataset = dataset

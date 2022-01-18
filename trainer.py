@@ -2,7 +2,6 @@ from proc_args import proc_args
 import torch.nn as nn
 import torch
 from protocol.protocol import calcEER
-
 from model import *
 from loss.loss import BCEWithLogits,ArcB,IdBce,ArcbId
 import matplotlib.pyplot as plt
@@ -106,7 +105,7 @@ def main():
     print(device)
 
     train_loader,dev_loader = get_dataset(cfg)
-
+    print(train_loader.batch_sampler)
     #net = get_net(cfg) 
     net = Model(cfg)
 
@@ -139,6 +138,7 @@ def main():
     log_file.writelines('devel_batch_size: '+str(cfg.devel_batch_size)+'\n')
     log_file.writelines('emb_size: '+str(cfg.emb_size)+'\n')
     log_file.writelines('input_size: '+str(cfg.input_size)+'\n')
+    log_file.writelines(str(train_loader.batch_sampler) + '\n')
     log_file.writelines('----------------------------------------------------\n')
     for epoch in range(num_epochs):
         start = timeit.default_timer()

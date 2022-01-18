@@ -56,7 +56,6 @@ def get_dataset(cfg):
     else:
         print("Error: unsuported datset!!")
     
-    # tbs = TrainBatchSampler(train_dataset,cfg.train_batch_size)
     tbs = TrainBatchSampler(train_dataset,cfg.train_batch_size)
 
     train_loader = data.DataLoader(dataset=train_dataset, batch_size= 1, 
