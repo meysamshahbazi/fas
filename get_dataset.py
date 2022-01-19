@@ -25,6 +25,13 @@ def get_dataset(cfg):
         train_dataset = MsuFsd(root,data_partion,cfg.train_batch_size,for_train=True,shape=shape)
         data_partion = 'devel'
         dev_dataset = MsuFsd(root,data_partion,cfg.devel_batch_size,for_train=False,shape=shape)
+    elif cfg.dataset[0:5] == 'oulu_':
+        root = '/media/meysam/B42683242682E6A8/OULU-NPU/'
+        data_partion = 'train' + cfg.dataset[4:]
+        train_dataset = OuluNPU(root,data_partion,cfg.train_batch_size,for_train=True,shape=shape)
+        data_partion = 'test'  + cfg.dataset[4:]
+        dev_dataset = OuluNPU(root,data_partion,cfg.devel_batch_size,for_train=False,shape=shape)
+
     elif cfg.dataset == 'oulu':
         root = '/media/meysam/B42683242682E6A8/OULU-NPU/'
         data_partion = 'train'
@@ -47,6 +54,14 @@ def get_dataset(cfg):
         train_dataset = RoseYoutu(root,data_partion,cfg.train_batch_size,for_train=True,shape=shape)
         data_partion = 'devel'
         dev_dataset = RoseYoutu(root,data_partion,cfg.devel_batch_size,for_train=False,shape=shape)
+        
+    elif cfg.dataset[0:4] == 'siw_':
+        root = '/media/meysam/901292F51292E010/SiW/SiW_release/'
+        data_partion = 'train' + cfg.dataset[3:]
+        train_dataset = SiW(root,data_partion,cfg.train_batch_size,for_train=True,shape=shape)
+        data_partion = 'test'  + cfg.dataset[3:]
+        dev_dataset = SiW(root,data_partion,cfg.devel_batch_size,for_train=False,shape=shape)
+
     elif cfg.dataset == 'siw':
         root = '/media/meysam/901292F51292E010/SiW/SiW_release/'
         data_partion = 'train'
