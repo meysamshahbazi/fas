@@ -113,7 +113,10 @@ class CasiaFASD(FASDataset):
         return face_locs
 
     
-
+    def _get_mean_std(self):
+        means = [0.4828,0.4291,0.4075]
+        stds = [0.2440,0.2413,0.2505]
+        return means,stds
     def get_randomed_face_loc(self,vid_idx):
         '''
             this function return a list of face location in form of (x1,y1,x2,y2)

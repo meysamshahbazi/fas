@@ -148,7 +148,10 @@ class OuluNPU(FASDataset):
             face_locs.append((x1,y1,x2,y2))   
             
         return face_locs
-
+    def _get_mean_std(self):
+        means = [0.5163,0.4666,0.4280]
+        stds = [0.3071,0.3053,0.3025]
+        return means,stds
 
 if __name__ == "__main__":
     root = '/media/meysam/B42683242682E6A8/OULU-NPU/'

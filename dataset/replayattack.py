@@ -7,6 +7,9 @@ import timeit
 import json
 import torch
 import math
+# from torch_mtcnn import detect_faces
+from tqdm import tqdm
+from PIL import Image
 
 
 class ReplayAttack(FASDataset):
@@ -58,7 +61,47 @@ class ReplayAttack(FASDataset):
         
         with open(self.root+self.data_partion+".json", "w") as outfile:  
             json.dump(my_dict, outfile) 
-            
+    def createFaceFiles(self):
+        # with open(self.root+self.data_partion+'.txt', "r") as text_file:
+        #     lines = text_file.readlines()
+
+        vids = [self.root+l['name'] for _,l in self.datadict.items()]
+
+        for index,v in enumerate(tqdm(vids)):
+            if not os.path.isfile(v[:-3]+'face'):
+                cap = cv2.VideoCapture(v)
+                frame_cnt = 0
+                my_file = open(v[:-3]+'face','w+')
+                while cap.isOpened():
+                    ret,frame = cap.read()
+                    if ret:
+                        pil_img = Image.fromarray(cv2.cvtColor(frame, cv2.COLOR_BGR2RGB))
+                        faces, _ = detect_faces(pil_img)
+
+                        if (len(faces)>0): 
+                            faces = list(map(int, faces[0]))
+                            x1 = faces[0]
+                            y1 = faces[1]
+                            x2 = faces[2]
+                            y2 = faces[3]
+                        else:
+                            if frame_cnt==0:
+                                x1=0
+                                y1=0
+                                x2=frame.shape[1]-1
+                                y2=frame.shape[0]-1
+                            print(v)#use preveus detected face!
+                            print(frame_cnt)
+                        l  = str(frame_cnt)+', '+str(x1)+', '+str(y1)+', '+str(x2)+', '+str(y2)+'\n'
+                        my_file.write(l)
+                        frame_cnt = frame_cnt + 1
+                        
+                    else:
+                        break
+                cap.release()
+                my_file.close()
+
+
     def get_face_loc(self,vid_idx):
         '''
             this function return a list of face location in form of (x1,y1,x2,y2)
@@ -84,7 +127,32 @@ class ReplayAttack(FASDataset):
                 x2 = img_shape[1]-1
             face_locs.append((x1,y1,x2,y2))   
         return face_locs
-
+    def get_face_loc1(self,vid_idx):
+        '''
+            this function return a list of face location in form of (x1,y1,x2,y2)
+        '''
+        # print('new face loc')
+        face_loc_path = self.datadict[str(vid_idx)]['name'].split('.')[0]
+        face_loc_path = self.root+face_loc_path+'.face'
+        face_locs = []
+        img_shape = self.datadict[str(vid_idx)]['resolution']
+        with open(face_loc_path, "r") as text_file:
+            lines = text_file.readlines()
+        for l in lines:
+            x1 = int(l[:-1].split(', ')[1])
+            y1 = int(l[:-1].split(', ')[2])
+            x2 = int(l[:-1].split(', ')[3])
+            y2 = int(l[:-1].split(', ')[4])
+            x1 = max(0,x1)
+            y1 = max(0,y1)
+            x2 = min(img_shape[1]-1,x2)
+            y2 = min(img_shape[0]-1,y2)
+            face_locs.append((x1,y1,x2,y2))   
+        return face_locs
+    def _get_mean_std(self):
+        means = [0.5557,0.4941,0.4673]
+        stds = [0.2910,0.2873,0.2998]
+        return means,stds
 
     def get_randomed_face_loc(self,vid_idx):
         '''
@@ -140,6 +208,7 @@ class ReplayAttack(FASDataset):
 
 if __name__ == "__main__":
     root = '/media/meysam/464C8BC94C8BB26B/Replay-Attack/'
-    dataset = ReplayAttack(root,'train',4)
-    dataset = ReplayAttack(root,'devel',4)
+    # dataset = ReplayAttack(root,'train',4)
+    # dataset = ReplayAttack(root,'devel',4)
     dataset = ReplayAttack(root,'test',4)
+    dataset.createFaceFiles()

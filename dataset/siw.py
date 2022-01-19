@@ -59,6 +59,10 @@ class SiW(FASDataset):
 
         with open(self.root+self.data_partion+".json", "w") as outfile:  
             json.dump(my_dict, outfile) 
+    def _get_mean_std(self):# need to change 
+        means = [0.4828,0.4291,0.4075]
+        stds = [0.2440,0.2413,0.2505]
+        return means,stds
 
     def get_face_loc(self,vid_idx):
         '''
