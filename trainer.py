@@ -31,7 +31,6 @@ def train(net,criterion,optimizer,train_loader,device):
         ids = ids.to(device)
 
         optimizer.zero_grad()     # Clear off the gradients from any past operation
-        # optimizer1.zero_grad()
         outputs,emb = net(items)      # Do the forward pass
 
         loss = criterion(outputs, classes,emb,ids) # Calculate the loss
@@ -40,9 +39,8 @@ def train(net,criterion,optimizer,train_loader,device):
 
             loss.backward()           # Calculate the gradients with help of back propagation
 
-            optimizer.step() 
-            # optimizer1.step()          # Ask the optimizer to adjust the parameters based on the gradients
-
+            optimizer.step()  # Ask the optimizer to adjust the parameters based on the gradients
+     
             iterations += 1
         else:
             print('nan')
@@ -73,7 +71,6 @@ def dev(net,criterion,dev_loader,device,epoch,path):
             outputs,emb = net(items)      # Do the forward pass
             loss += criterion(outputs, classes,emb,ids).item() # Calculate the loss
             outputs = sigmoid(64*outputs) # use sigmoid for infering
-            # outputs = 0.5*outputs +0.5
         # Record the all labels of dataset and prediction of model for later use!
         lbl += classes.cpu().flatten().tolist()    
         pred += outputs.detach().cpu().flatten().tolist()
@@ -81,7 +78,8 @@ def dev(net,criterion,dev_loader,device,epoch,path):
         iterations += 1
     # Record the validation loss
     dev_loss.append(loss/iterations)
-    FAR,FRR,threshold = calcEER(lbl,pred,epoch,path,plot=True,precision=0.01)
+    FAR,FRR,threshold = calcEER(lbl,pred,epoch,path,plot=True,precision=0.001)
+    
 
 
 
@@ -190,4 +188,3 @@ if __name__ == "__main__":
     dev_loss = []
     main()
 
-    
