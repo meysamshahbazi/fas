@@ -1,9 +1,10 @@
-from proc_args import proc_args
+import argparse
 import torch.nn as nn
 import torch
 from protocol.protocol import calcEER
 from model import *
 from loss.loss import BCEWithLogits,ArcB,IdBce,ArcbId
+from torch.utils import data
 import matplotlib.pyplot as plt
 import os
 import timeit
@@ -14,7 +15,9 @@ from get_dataset import get_dataset
 
 
 
-def train(net,criterion,optimizer,train_loader,device,epoch,path):
+
+
+def train(net,criterion,optimizer,train_loader,device):
     global train_loss
     iter_loss = 0.0
     iterations = 0
@@ -28,20 +31,26 @@ def train(net,criterion,optimizer,train_loader,device,epoch,path):
         ids = ids.to(device)
 
         optimizer.zero_grad()     # Clear off the gradients from any past operation
-
+        # optimizer1.zero_grad()
         outputs,emb = net(items)      # Do the forward pass
 
         loss = criterion(outputs, classes,emb,ids) # Calculate the loss
+        if not torch.isnan(loss):
+            iter_loss += loss.item() # Accumulate the loss
 
-        iter_loss += loss.item() # Accumulate the loss
+            loss.backward()           # Calculate the gradients with help of back propagation
 
-        loss.backward()           # Calculate the gradients with help of back propagation
+            optimizer.step() 
+            # optimizer1.step()          # Ask the optimizer to adjust the parameters based on the gradients
 
-        optimizer.step()          # Ask the optimizer to adjust the parameters based on the gradients
-
-        iterations += 1
+            iterations += 1
+        else:
+            print('nan')
     # Record the training loss
     train_loss.append(iter_loss/iterations)
+
+
+
 
 
 
@@ -63,7 +72,8 @@ def dev(net,criterion,dev_loader,device,epoch,path):
             ids = ids.to(device)
             outputs,emb = net(items)      # Do the forward pass
             loss += criterion(outputs, classes,emb,ids).item() # Calculate the loss
-            outputs = sigmoid(outputs) # use sigmoid for infering
+            outputs = sigmoid(64*outputs) # use sigmoid for infering
+            # outputs = 0.5*outputs +0.5
         # Record the all labels of dataset and prediction of model for later use!
         lbl += classes.cpu().flatten().tolist()    
         pred += outputs.detach().cpu().flatten().tolist()
@@ -78,13 +88,21 @@ def dev(net,criterion,dev_loader,device,epoch,path):
 
 def get_optimizer(net,cfg):
     if cfg.optimizer == 'adam':
-        # optimizer = torch.optim.Adam(net.parameters(),lr=cfg.lr,betas=(0.9, 0.999), eps=1e-08, weight_decay=0, amsgrad=True)
-        # optimizer = torch.optim.AdamW(net.parameters(), lr=cfg.lr, betas=(0.9, 0.999), eps=1e-08, weight_decay=0.0001, amsgrad=True)
-        optimizer = torch.optim.SGD(net.parameters(), lr=cfg.lr, momentum=0.9, dampening=0, weight_decay=0.001, nesterov=True)
-
+        optimizer = torch.optim.Adam(net.parameters(),lr=cfg.lr,betas=(0.9, 0.999), eps=1e-08, weight_decay=1e-6, amsgrad=True)
+    elif cfg.optimizer == 'nadam':
+        optimizer = torch.optim.NAdam(net.parameters(), lr=0.002, betas=(0.9, 0.999), eps=1e-08, weight_decay=0, momentum_decay=0.004)
+    elif cfg.optimizer == 'adamw':
+        optimizer = torch.optim.AdamW(net.parameters(), lr=cfg.lr, betas=(0.9, 0.999), eps=1e-08, weight_decay=0, amsgrad=True)
+    elif cfg.optimizer == 'adamax':
+        optimizer = torch.optim.Adamax(net.parameters(), lr=cfg.lr, betas=(0.9, 0.999), eps=1e-08, weight_decay=0)
+    elif cfg.optimizer == 'sgd':
+        optimizer = torch.optim.SGD(net.parameters(), lr=cfg.lr, momentum=0.9, dampening=0, weight_decay=1e-9, nesterov=True)
+    else:
+        raise "un suported optimizer" 
     return optimizer
 
-def get_criterion(cfg,net):
+def get_criterion(cfg,net): 
+    
     if cfg.criterion == 'BCEWithLogits':
         criterion = BCEWithLogits()
     elif cfg.criterion == 'ArcB':
@@ -92,10 +110,9 @@ def get_criterion(cfg,net):
     elif cfg.criterion == 'IdBce':
         criterion = IdBce(alpha=1,M=2)
     elif cfg.criterion == 'arcbid':
-        # alpha,net,M = 0.5,m=0.5)
-        criterion = ArcbId(alpha=2,beta=2,net=net,M=2,m=0.75)
-
+        criterion = ArcbId(alpha=0.25,beta=.25,gamma=0.5,net=net,M =2,s=64,m=0.75)
     return criterion
+
 
 def main():
     
@@ -105,18 +122,19 @@ def main():
     print(device)
 
     train_loader,dev_loader = get_dataset(cfg)
-    print(train_loader.batch_sampler)
+
     #net = get_net(cfg) 
-    net = Model(cfg)
+    net = Model1(cfg)
 
     net.to(device)
 
     # Our loss function
     criterion = get_criterion(cfg,net)
-    # Our optimizer
+    criterion.to(device)
+    # Our optimizer    
     
-
     optimizer = get_optimizer(net,cfg)
+
     print('lr: '+str(cfg.lr))
     num_epochs = cfg.num_epochs
     path = cfg.dataset + '_' + cfg.backbone + '_' + cfg.criterion + '_' + cfg.optimizer+'_lbp_'+str(cfg.use_lbp)
@@ -138,11 +156,10 @@ def main():
     log_file.writelines('devel_batch_size: '+str(cfg.devel_batch_size)+'\n')
     log_file.writelines('emb_size: '+str(cfg.emb_size)+'\n')
     log_file.writelines('input_size: '+str(cfg.input_size)+'\n')
-    log_file.writelines(str(train_loader.batch_sampler) + '\n')
     log_file.writelines('----------------------------------------------------\n')
-    for epoch in range(num_epochs):
+    for epoch in range(num_epochs): 
         start = timeit.default_timer()
-        train(net,criterion,optimizer,train_loader,device,epoch,path)
+        train(net,criterion,optimizer,train_loader,device)
         train_loader.dataset.clear_cache()
         dev(net,criterion,dev_loader,device,epoch,path)
         stop = timeit.default_timer()
@@ -151,7 +168,8 @@ def main():
         log_file.writelines('Epoch %d/%d, Tr Loss: %.10f, Dev Loss: %.10f,time: %.3f \n'
         %(epoch+1, num_epochs, train_loss[-1],dev_loss[-1], stop-start))
         torch.save(net.state_dict(), 'outputs/'+path+'/checkpoints/ep_'+str(epoch)+'.pt')
-       
+
+
 
     plt.plot(list(range(1,num_epochs+1)),train_loss, label='train loss')
     plt.plot(list(range(1,num_epochs+1)),dev_loss, label='dev loss')
@@ -171,3 +189,5 @@ if __name__ == "__main__":
     train_loss = []
     dev_loss = []
     main()
+
+    
