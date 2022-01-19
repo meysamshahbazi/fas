@@ -54,7 +54,7 @@ def get_dataset(cfg):
         data_partion = 'devel'
         dev_dataset = SiW(root,data_partion,cfg.devel_batch_size,for_train=False,shape=shape)
     else:
-        print("Error: unsuported datset!!")
+        raise ("Error: unsuported datset!!")
     
     tbs = TrainBatchSampler(train_dataset,cfg.train_batch_size)
 
