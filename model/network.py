@@ -155,7 +155,7 @@ def get_backbone(cfg,nb_ch):
     model =resnet188()
     return model
   elif cfg.backbone == 'ResNet_18':
-    model = models.resnet18(pretrained=False)
+    model = models.resnet18(pretrained=True)
     model.fc = Identity()
   elif cfg.backbone == 'ResNet_101':
     model = ResNet_101(input_size,emb_size=cfg.emb_size,nb_ch=nb_ch)

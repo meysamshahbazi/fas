@@ -12,8 +12,19 @@ from torch.utils import data
 
 def get_dataset(cfg):
     shape = (cfg.input_size,cfg.input_size)
-    if cfg.dataset == 'casia':
-        root = '/media/meysam/464C8BC94C8BB26B/Casia-FASD/'
+    if cfg.dataset == 'casia2replay':
+        # root = '/media/meysam/B42683242682E6A8/Casia-FASD/'
+        root = '/media/meysam/hdd/dataset/Casia-FASD/'
+        data_partion = 'train'
+        train_dataset = CasiaFASD(root,data_partion,cfg.train_batch_size,for_train=True,shape=shape)
+        data_partion = 'devel'
+        # root = '/media/meysam/464C8BC94C8BB26B/Replay-Attack/'
+        root = '/media/meysam/hdd/dataset/replay-attack/'
+        dev_dataset = ReplayAttack(root,data_partion,cfg.devel_batch_size,for_train=False,shape=shape)
+        
+    elif cfg.dataset == 'casia':
+        root = '/media/meysam/hdd/dataset/Casia-FASD/'
+        # root = '/media/meysam/464C8BC94C8BB26B/Casia-FASD/'
         data_partion = 'train'
         train_dataset = CasiaFASD(root,data_partion,cfg.train_batch_size,for_train=True,shape=shape)
         data_partion = 'devel'
