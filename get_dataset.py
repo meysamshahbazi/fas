@@ -23,8 +23,8 @@ def get_dataset(cfg):
         dev_dataset = ReplayAttack(root,data_partion,cfg.devel_batch_size,for_train=False,shape=shape)
         
     elif cfg.dataset == 'casia':
-        root = '/media/meysam/hdd/dataset/Casia-FASD/'
-        # root = '/media/meysam/464C8BC94C8BB26B/Casia-FASD/'
+        # root = '/media/meysam/hdd/dataset/Casia-FASD/'
+        root = '/media/meysam/464C8BC94C8BB26B/Casia-FASD/'
         data_partion = 'train'
         train_dataset = CasiaFASD(root,data_partion,cfg.train_batch_size,for_train=True,shape=shape)
         data_partion = 'devel'
@@ -50,10 +50,10 @@ def get_dataset(cfg):
         data_partion = 'devel'
         dev_dataset = OuluNPU(root,data_partion,cfg.devel_batch_size,for_train=False,shape=shape)
     elif cfg.dataset == 'replay':
-        # root = '/media/meysam/464C8BC94C8BB26B/Replay-Attack/' 
+        root = '/media/meysam/464C8BC94C8BB26B/Replay-Attack/' 
         # root = '/home/meysam/Desktop/Replay-Attack/'
         # root = '/content/replayattack/'
-        root = '/media/meysam/hdd/dataset/replay-attack/'
+        # root = '/media/meysam/hdd/dataset/replay-attack/'
         
         data_partion = 'train'
         train_dataset = ReplayAttack(root,data_partion,cfg.train_batch_size,for_train=True,shape=shape)
