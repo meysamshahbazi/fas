@@ -105,6 +105,56 @@ class Model1(nn.Module):
 
         return self.head(F.dropout(emb, p=0.5)),emb
 
+class LbpLayer1(nn.Module):
+    def __init__(self,in_planes, out_planes, stride=1, groups=1, dilation=1,act=torch.sign):
+        super(LbpLayer1, self).__init__()
+        self.in_planes = in_planes
+        self.out_planes = out_planes
+        self.stride = stride
+        self.groups = groups
+        self.dilation = dilation
+        self.act = act
+        self.lrn = nn.LocalResponseNorm(size=3, alpha=0.0001, beta=0.75, k=2)
+        self.w = nn.Parameter(torch.empty(out_planes,in_planes,8,1,1))
+        nn.init.normal_(self.w,std=0.1)
+        self.zp = nn.ZeroPad2d(1)
+        
+    def forward(self,x):
+        x_lst = []
+        x_lst.append(self.act(x[:,:,1:-1,1:-1]-x[:,:,0:-2,0:-2]).unsqueeze(dim=2))
+        x_lst.append(self.act(x[:,:,1:-1,1:-1]-x[:,:,0:-2,1:-1]).unsqueeze(dim=2))
+        x_lst.append(self.act(x[:,:,1:-1,1:-1]-x[:,:,0:-2,2:]).unsqueeze(dim=2))
+        x_lst.append(self.act(x[:,:,1:-1,1:-1]-x[:,:,1:-1,0:-2]).unsqueeze(dim=2))
+        x_lst.append(self.act(x[:,:,1:-1,1:-1]-x[:,:,2:,0:-2]).unsqueeze(dim=2))
+        x_lst.append(self.act(x[:,:,1:-1,1:-1]-x[:,:,2:,1:-1]).unsqueeze(dim=2))
+        x_lst.append(self.act(x[:,:,1:-1,1:-1]-x[:,:,2:,2:]).unsqueeze(dim=2))
+        x_lst.append(self.act(x[:,:,1:-1,1:-1]-x[:,:,1:-1,2:]).unsqueeze(dim=2))
+        x_cat = torch.cat(x_lst,dim=2)
+        
+        y = F.conv3d(x_cat,torch.exp(self.w),
+            stride=1, padding=0, 
+            dilation=1, groups=1).squeeze()
+        
+        return self.zp(y) #+ x #self.lrn(y)
+
+      
+
+class efflbp(nn.Module):
+    def __init__(self): 
+        super(efflbp, self).__init__()
+        base = models.efficientnet_b0(pretrained=True)
+        features = list(base.features.children())
+        self.enc = nn.Sequential(*features[1:])
+        self.l = LbpLayer1(3,32)
+        y = enc(x)
+        self.avgpool = nn.AdaptiveAvgPool2d(1)
+    def forward(self,x):
+        x = self.l(x)
+        x = self.enc(x)
+        x = self.avgpool(x)
+        x = torch.flatten(x, 1)
+        return x
+
 
 
 
@@ -154,6 +204,8 @@ def get_backbone(cfg,nb_ch):
   elif cfg.backbone == 'ResNet_188':
     model =resnet188()
     return model
+  elif cfg.backbone == 'efflbp':
+    model = efflbp()
   elif cfg.backbone == 'ResNet_18':
     model = models.resnet18(pretrained=True)
     model.fc = Identity()
