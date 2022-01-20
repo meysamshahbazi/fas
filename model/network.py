@@ -146,7 +146,6 @@ class efflbp(nn.Module):
         features = list(base.features.children())
         self.enc = nn.Sequential(*features[1:])
         self.l = LbpLayer1(3,32)
-        y = enc(x)
         self.avgpool = nn.AdaptiveAvgPool2d(1)
     def forward(self,x):
         x = self.l(x)
