@@ -77,8 +77,8 @@ class SiW(FASDataset):
         for l in lines:
             x1 = int(l.split(' ')[0]) if l.split(' ')[0] != ' ' else 0
             y1 = int(l.split(' ')[1]) if l.split(' ')[1] != ' ' else 0
-            x2 = int(l.split(' ')[2]) if l.split(' ')[2] != ' ' else img_shape[0] -1
-            y2 = int(l.split(' ')[3]) if l.split(' ')[3] != ' ' else img_shape[1] -1
+            x2 = int(l.split(' ')[2]) if l.split(' ')[2] != ' ' else img_shape[1] -1
+            y2 = int(l.split(' ')[3]) if l.split(' ')[3] != ' ' else img_shape[0] -1
             x1 = max(0,x1)
             y1 = max(0,y1)
             x2 = min(img_shape[1]-1,x2)
